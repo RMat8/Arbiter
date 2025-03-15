@@ -1,0 +1,1 @@
+#gamescripts/init.py
