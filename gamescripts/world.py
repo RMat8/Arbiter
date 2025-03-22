@@ -1,7 +1,7 @@
 #game/world.py
 from enum import Enum
 
-class WorldTypes:
+class WorldTypes(Enum):
     NORMAL = 1
     CELESTIAL = 2
     ABYSSAL = 3
@@ -13,6 +13,3 @@ class World:
     def __init__(self, name, worldType=WorldTypes.NORMAL):
         self.name = name
         self.worldType = worldType
-
-def send(object, target):
-    pass
