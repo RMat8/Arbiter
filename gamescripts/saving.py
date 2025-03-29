@@ -4,23 +4,13 @@ import pickle
 from datetime import datetime
 
 class GameSaveSystem():
-    SAVE_DIRECTORY = "gamedata/saves"
-
-    @staticmethod
-    def _ensure_save_directory_exists():
-        if not os.path.exists(GameSaveSystem.SAVE_DIRECTORY):
-            os.makedirs(GameSaveSystem.SAVE_DIRECTORY)
+    SAVE_DIRECTORY = "Python-Text-Adventure-Game/gamedata/saves"
 
     @staticmethod
     def save_game(game_state, slot_name=None):
         if slot_name is None:
-            slot_name = f"save_{datetime.now().strftime("%Y%m#d_%H%M%S")}"
-        else:
-            slot_name = f"{slot_name}_{datetime.now().strftime("%Y%m%d_%H%M%S")}"
-        
-        if not slot_name.endswith(".pkl"):
-            slot_name += ".pkl"
-        
+            slot_name = input("Please enter a name for the save> ")
+
         save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)
 
         if not os.path.exists(save_path):
@@ -47,8 +37,8 @@ class GameSaveSystem():
         save_file_path = os.path.join(save_path, "game_state.pkl")
 
         try:
-            if not os.path.exists(save_file_path):
-                print(f"No save file found at {save_path}")
+            if not os.path.exists(save_path):
+                print(f"No save found at {save_path}")
                 return None
             
             with open(save_file_path, "rb") as save_file:
@@ -56,16 +46,15 @@ class GameSaveSystem():
             print(f"Game loaded successfully from {save_file_path}")
             return game_state
         except Exception as e:
-            print(f"Error loading game: {e}")
-            return None
+            return f"Error loading game: {e}"
     
     @staticmethod
     def list_saves():
-        save_directories = []
-        for directory in os.listdir(GameSaveSystem.SAVE_DIRECTORY):
-            if os.path.isdir(os.path.join(GameSaveSystem.SAVE_DIRECTORY, directory)):
-                save_directories.append()
-        return save_directories
+        saves = []
+        for save in os.listdir(GameSaveSystem.SAVE_DIRECTORY):
+            if os.path.isdir(os.path.join(GameSaveSystem.SAVE_DIRECTORY, save)):
+                saves.append(save)
+        return saves
     
     @staticmethod
     def delete_save(slot_name):
