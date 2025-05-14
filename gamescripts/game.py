@@ -1,7 +1,9 @@
 #game/game.py
 import time
+import os
 
 #modules
+from .colors import *
 from .commands import MenuCommands, GameCommands, COMMANDS
 
 art = """
@@ -14,10 +16,11 @@ art = """
 """
 
 def game_init():
+    os.system('cls')
     # Start the game by creating a new game or loading an existing one
     print("\n")
     #time.sleep(2)
-    print(art)
+    print(f"{MAGENTA}{art}{RESET}")
     #time.sleep(2)
     print("Type 'new' to start a new game or 'load <file>' to load an existing game.")
     #time.sleep(0.3)
@@ -52,6 +55,7 @@ def main(difficulty):
     possible_states = ["menu", "game"]
     state = "menu"
     commands = COMMANDS["MENU"]["COMMANDS"]
+    game_state = None
 
     while state != "exit":
         time.sleep(0.1)
@@ -63,14 +67,26 @@ def main(difficulty):
         
         if command_output[0]:
             if len(arg) > 0:
-                result = commands[command](arg)
-                print(result)
+                if command == "save":
+                    result = commands["save"](game_state, arg)
+                else:
+                    result = commands[command](arg)
             else:
                 try: #try to run command without arguments
                     result = commands[command]()
-                    print(result)
                 except Exception as e:
                     print(f"An error occurred: {e}")
             
+            if type(result) == tuple:
+                print(result[0])
+                game_state = result[1]
+                try:
+                    state = result[2]
+                except Exception as e:
+                    print(f"Output error: {e}")
+
+            else:
+                print(result)
+
             if state in possible_states:
                 commands = COMMANDS[state.upper()]["COMMANDS"]

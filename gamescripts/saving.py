@@ -1,13 +1,16 @@
 #gamescrips/gamesavesystem.py
 import os
+import shutil
 import pickle
+import configparser
 from datetime import datetime
-
+from .world import World, WorldTypes
 class GameSaveSystem():
-    SAVE_DIRECTORY = "Python-Text-Adventure-Game/gamedata/saves"
+    SAVE_DIRECTORY = "gamedata\saves"
+    CURRENT_SAVE = None
 
     @staticmethod
-    def save_game(game_state, slot_name=None):
+    def new_game(game_state, slot_name=None):
         if slot_name is None:
             slot_name = input("Please enter a name for the save> ")
 
@@ -16,22 +19,50 @@ class GameSaveSystem():
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        save_file_path = os.path.join(save_path, "game_state.pkl")
+        save_game_state_path = os.path.join(save_path, "game_state.pkl")
+        save_config_path = os.path.join(save_path, "config.ini")
 
         try:
-            with open(save_file_path, "wb") as save_file:
+            with open(save_game_state_path, "wb") as save_file:
                 pickle.dump(game_state, save_file)
-            print(f"Game saved successfully to {save_path}")
+
+            with open(save_config_path, "w") as save_config:
+                config = configparser.ConfigParser()
+
+                config["gameSettings"] = {
+                    "difficulty": "normal",
+                    "startingWorldType": "normal"
+                }
+                
+                config.write(save_config)
+
+            GameSaveSystem.CURRENT_SAVE = slot_name
+            print(f"Game created successfully at {save_path}")
             return True
         except Exception as e:
-            print(f"Error saving game: {e}")
+            GameSaveSystem.CURRENT_SAVE = None
+            print(f"Error creating game: {e}")
+            return False
+        
+    @staticmethod
+    def save_progress(game_state, slot_name):
+        save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)
+        save_game_state_path = os.path.join(save_path, "game_state.pkl")
+
+        if not os.path.exists(save_path):
+            GameSaveSystem.new_game(game_state, slot_name)
+
+        try:
+            with open(save_game_state_path, "wb") as save_file:
+                pickle.dump(game_state, save_file)
+            print(f"Progress saved to {save_game_state_path}")
+            return True
+        except Exception as e:
+            print(f"Error saving progress: {e}")
             return False
 
     @staticmethod
     def load_game(slot_name):
-        if not slot_name.endswith(".pkl"):
-            slot_name += ".pkl"
-        
         save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)
 
         save_file_path = os.path.join(save_path, "game_state.pkl")
@@ -43,9 +74,12 @@ class GameSaveSystem():
             
             with open(save_file_path, "rb") as save_file:
                 game_state = pickle.load(save_file)
-            print(f"Game loaded successfully from {save_file_path}")
+            
+            GameSaveSystem.CURRENT_SAVE = slot_name
+            print(f"Game loaded successfully from {save_path}")
             return game_state
         except Exception as e:
+            GameSaveSystem.CURRENT_SAVE = None
             return f"Error loading game: {e}"
     
     @staticmethod
@@ -60,7 +94,7 @@ class GameSaveSystem():
     def delete_save(slot_name):
         save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)
         if os.path.exists(save_path):
-            os.rmdir(save_path)
+            shutil.rmtree(save_path)
             print(f"Save '{slot_name}' deleted successfully.")
         else:
             print(f"No save file found named '{slot_name}'.")

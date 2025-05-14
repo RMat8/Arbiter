@@ -1,0 +1,34 @@
+{
+    save_name: "Casual Playthrough or whatever",
+    worlds: [
+        world1,
+        world2,
+        etc...
+    ],
+    player: {
+        name: "Mat",
+        characteristics,
+        stats,
+        etc...,
+        inventory: {
+            size: ...,
+            weight_limit (based on stats -strength or whatever),
+            contents: [
+                item1,
+                item2,
+                item3,
+                etc...
+            ]
+        }
+    },
+    player_location: {
+        current_world: world1,
+        current_scene: chunk/region from current_world,
+        player_position: some coordinate system or whatever
+    }
+    temp_data: {
+        loaded_entities: {},
+        loaded_structures: {},
+        etc...
+    }
+}

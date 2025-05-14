@@ -5,11 +5,13 @@ import time
 import configparser
 
 #modules
+from .colors import *
 from .saving import GameSaveSystem
 from .player import Player
 from .world import World, WorldTypes
 
 #menu command functions
+
 class MenuCommands:
     @staticmethod
     def help_command():
@@ -18,12 +20,6 @@ class MenuCommands:
         for command, description in COMMANDS["MENU"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         return output
-
-    @staticmethod
-    def save_command(arg):
-        save_system = GameSaveSystem()
-        save_system.save_game(arg)
-        return save_system
 
     @staticmethod
     def load_command(arg=None):
@@ -36,20 +32,14 @@ class MenuCommands:
                     print(f"- {save_file}")
                 arg = input("Please specify the save to load: ")
             else:
-                print("No save files found")
-                return None
+                return "No save files found"
         else:
             try:
                 game_state = save_system.load_game(arg)
-                if game_state is not None:
-                    state = game_state["state"]
-                    world = World(game_state["worldType"])
-                    playerEntity = Player(game_state["player"]["name"], game_state["player"]["position"])
             except Exception as e:
-                print(f"Error loading game: {e}")
-                return None
+                return f"Error loading game: {e}"
 
-        return game_state
+        return (f"Save succesfully loaded\nWelcome back, {CYAN}{game_state["player"].name}{RESET}", game_state, "game")
 
     @staticmethod
     def delete_save_command(filename):
@@ -70,12 +60,13 @@ class MenuCommands:
         return output
 
     @staticmethod
-    def create_new_game(save_name):
+    def create_new_game(save_name): #this is the black box of the new_game_command
         # Introduce
         print("Welcome")
         time.sleep(0.1)
         name = input("Write your name> ")
         playerEntity = Player(name)
+        initialWorld = World(name)
         print(f"Hello, {name}, Your journey begins here.")
         time.sleep(0.1)
         print("Type 'help' to learn more...\n")
@@ -96,22 +87,32 @@ class MenuCommands:
             }
         }"""
 
-        game_state = 0
+        game_state = {
+            "worlds": [initialWorld],
+            "player": playerEntity,
+            "player_location": {
+                "current_world": initialWorld,
+                "current_region": None,
+                "player_position": (0, 0)
+            }
+        }
+
+        if not initialWorld in game_state["worlds"]:
+            game_state["worlds"].append(initialWorld)
 
         # Save the new game state
         save_system = GameSaveSystem()
-        save_system.save_game(game_state, save_name)
+        save_system.new_game(game_state, save_name)
 
         # Start the main game loop
-        return True
+        return True, game_state
 
     @staticmethod
-    def new_game_command(arg=None):
+    def new_game_command(arg): #this is the function that acts as the command
         if not arg:
             arg = input("Enter the name of the save> ")
 
-        print("New game created and started.")
-        MenuCommands.create_new_game(arg)
+        return ("New game created and started.", MenuCommands.create_new_game(arg)[1], "game")
 
     @staticmethod
     def exit_command(arg=None):
@@ -125,19 +126,27 @@ class GameCommands():
     def game_help():
         output = "\n"
         output += "Available actions: \n"
-        for command, description in COMMANDS["GAME"].items():
+        for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         return output
+        
+    @staticmethod
+    def save_command(game_state, name):
+        save_system = GameSaveSystem()
+        if not name:
+            name = GameSaveSystem.CURRENT_SAVE
 
+        save_system.save_progress(game_state, name)
+        return f"Game succesfully saved as {name}"
+    
     @staticmethod
     def quit_game():
-        return "Exiting the saved game"
+        return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
 
 COMMANDS = {
     "MENU": {
         "COMMANDS": {
             "help": MenuCommands.help_command,
-            "save": MenuCommands.save_command,
             "load": MenuCommands.load_command,
             "new": MenuCommands.new_game_command,
             "delete": MenuCommands.delete_save_command,
@@ -146,21 +155,22 @@ COMMANDS = {
         },
        "DESCRIPTIONS": {
             "help": "Displays a list of available commands.",
-            "save (file)": "Saves the current game state.",
-            "load (file)": "Loads a saved game state.",
-            "new (file)": "Creates a new game",
-            "delete (file)": "Deletes a saved game.",
-            "list": "Lists all saved game slots.",
+            "load (save)": "Loads a saved game.",
+            "new (save)": "Creates a new game.",
+            "delete (save)": "Deletes a saved game.",
+            "list": "Lists all saved games.",
             "exit": "Exits the game."
         }
     },
     "GAME": {
         "COMMANDS": {
             "help": GameCommands.game_help,
+            "save (save name; optional)": GameCommands.save_command,
             "quit": GameCommands.quit_game
         },
         "DESCRIPTIONS" : {
             "help": "Displays a list of available actions.",
+            "save (name)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
             "quit": "Exits the saved game."
         }
     }
