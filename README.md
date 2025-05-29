@@ -6,3 +6,5 @@
 ██╔══██║██╔══██╗██╔══██╗   ██║     ██║   ██╔══╝  ██╔══██╗
 ██║  ██║██║  ██║███████║   ██║     ██║   ███████╗██║  ██║
 ╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝
+
+Arbiter is a text-based adventure game with Roguelike, Rpg, and simulation aspects made in python.
