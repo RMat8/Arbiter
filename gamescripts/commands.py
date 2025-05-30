@@ -16,7 +16,7 @@ class MenuCommands:
     @staticmethod
     def help_command():
         output = "\n"
-        output += "Available commands: \n"
+        output += f"{BRIGHT_PURPLE}Available commands: {RESET}\n"
         for command, description in COMMANDS["MENU"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         return output
@@ -40,12 +40,17 @@ class MenuCommands:
             except Exception as e:
                 return f"Error loading game: {e}"
 
-        return (f"Save succesfully loaded\nWelcome back, {CYAN}{game_state["player"].name}{RESET}", game_state, "game")
+        """
+        current_world = GameStateManager.get()["player_location"]["current_world"]
+        current_world.print_altitude_map()
+        """
+        return (f"Save succesfully loaded\nWelcome back, {game_state["player"].name}", game_state, "game")
 
     @staticmethod
     def delete_save_command(filename):
         save_system = GameSaveSystem()
         save_system.delete_save(filename)
+        return "\n"
 
     @staticmethod
     def list_saves_command():
@@ -65,10 +70,22 @@ class MenuCommands:
         # Introduce
         print("Welcome")
         time.sleep(0.1)
-        name = input("Write your name> ")
+        name = f"{CYAN}{input("Write your name> ")}{RESET}"
         playerEntity = Player(name)
         initialWorld = World(name)
-        print(f"Hello, {CYAN}{name}{RESET}, Your journey begins here.")
+
+        """ #display tile data
+        print(f"World: {initialWorld.name}")
+        print(f"Tile count: {len(initialWorld.tiles)}")
+        for coords, tile in initialWorld.tiles.items():
+            print(f"{coords}: {tile.describe()}")
+        """
+
+        """#display tile noise altitude
+        initialWorld.print_altitude_map()
+        """
+
+        print(f"Hello, {name}, Your journey begins here.")
         time.sleep(0.1)
         print("Type 'help' to learn more...\n")
         
@@ -128,7 +145,7 @@ class GameCommands():
     @staticmethod
     def game_help():
         output = "\n"
-        output += "Available actions: \n"
+        output += f"{BRIGHT_PURPLE}Available actions: {RESET}\n"
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         
@@ -149,6 +166,12 @@ class GameCommands():
         save_system.save_progress(game_state, name)
         return f"Game succesfully saved as {name}"
     
+    @staticmethod
+    def world_map():
+        current_world = GameStateManager.get()["player_location"]["current_world"]
+        current_world.print_altitude_map()
+        return ""
+
     @staticmethod
     def quit_game():
         GameStateManager.reset()
@@ -177,11 +200,13 @@ COMMANDS = {
         "COMMANDS": {
             "help": GameCommands.game_help,
             "save (save name; optional)": GameCommands.save_command,
+            "map": GameCommands.world_map,
             "quit": GameCommands.quit_game
         },
         "DESCRIPTIONS" : {
             "help": "Displays a list of available actions.",
             "save (name)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
+            "map: Displays an altitude map of the known tiles."
             "quit": "Exits the saved game."
         }
     }

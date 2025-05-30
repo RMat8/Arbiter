@@ -5,6 +5,22 @@ import hashlib
 
 #modules
 from .game_state_manager import GameStateManager
+from .colors import *
+
+def pseudo_noise(x, y, seed=0, base_altitude=50, variance=10, spike_chance=0.02, spike_height=30):
+    key = f"{x},{y},{seed}".encode()
+    hash_val = hashlib.md5(key).hexdigest()
+    noise_val = int(hash_val[:4], 16) / 0xFFFF
+
+    variation = (noise_val - 0.5) * 2 * variance  # -variance to +variance
+    altitude = int(base_altitude + variation)
+
+    if noise_val > (1.0 - spike_chance):
+        altitude += spike_height
+    elif noise_val < spike_chance:
+        altitude -= spike_height
+
+    return max(0, min(100, altitude))
 
 class WorldTypes(Enum):
     NORMAL = 1
@@ -55,6 +71,20 @@ class World:
             GameStateManager.set(game_state)
         except Exception as e:
             print(f"Could not change player position: {e}")
+    
+    def print_altitude_map(self):
+        print("\n")
+        for y in range(self.height):
+            row = ""
+            for x in range(self.width):
+                tile = self.get_tile(x, y)
+                if tile:
+                    color = blue_shade(tile.altitude)
+                    row += f"{color}{tile.altitude:3}{RESET}"
+                else:
+                    row += " ?  "
+            print(row)
+        return "\n"
 
 class WorldGenerator:
     @classmethod
@@ -75,9 +105,11 @@ class WorldGenerator:
     
     @staticmethod
     def _pseudo_noise(x, y, seed):
-        key = f"{x},{y},{seed}".encode()
-        hash_val = hashlib.md5(key).hexdigest()
-        return int(hash_val[:4], 16) * 100 // 0xFFFF
+        return pseudo_noise(x, y, 
+                            seed, base_altitude=50, 
+                            variance=8, 
+                            spike_chance=0.12, #0.015
+                            spike_height=25)
 
 """
 myWorld = World("World 1")
