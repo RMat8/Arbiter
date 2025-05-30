@@ -7,6 +7,7 @@ from datetime import datetime
 
 #modules
 from .world import World, WorldTypes
+from .game_state_manager import GameStateManager
 
 class GameSaveSystem():
     SAVE_DIRECTORY = "gamedata\saves"
@@ -103,18 +104,3 @@ class GameSaveSystem():
             print(f"Save '{slot_name}' deleted successfully.")
         else:
             print(f"No save file found named '{slot_name}'.")
-
-class GameStateManager:
-    _state = None
-
-    @classmethod
-    def get(cls):
-        return cls._state
-    
-    @classmethod
-    def set(cls, game_state):
-        cls._state = game_state
-    
-    @classmethod
-    def reset(cls):
-        cls._state = None

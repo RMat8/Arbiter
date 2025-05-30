@@ -6,12 +6,12 @@ import configparser
 
 #modules
 from .colors import *
-from .saving import GameSaveSystem, GameStateManager
+from .saving import GameSaveSystem
+from .game_state_manager import GameStateManager
 from .player import Player
 from .world import World, WorldTypes
 
 #menu command functions
-
 class MenuCommands:
     @staticmethod
     def help_command():
@@ -94,7 +94,8 @@ class MenuCommands:
             "player_location": {
                 "current_world": initialWorld,
                 "current_region": None,
-                "player_position": (0, 0)
+                "player_position": (0, 0),
+                "current_tile": initialWorld.get_tile(0, 0)
             }
         }
 

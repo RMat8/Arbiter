@@ -5,7 +5,7 @@ import os
 #modules
 from .colors import *
 from .commands import MenuCommands, GameCommands, COMMANDS
-from .saving import GameStateManager
+from .game_state_manager import GameStateManager
 
 art = """
  █████  ██████╗ ██████╗    ██╗  ████████╗███████╗██████╗ 

@@ -1,6 +1,10 @@
 #game/world.py
 from enum import Enum
 import random
+import hashlib
+
+#modules
+from .game_state_manager import GameStateManager
 
 class WorldTypes(Enum):
     NORMAL = 1
@@ -38,23 +42,42 @@ class World:
     
     def get_tile(self, x, y):
         return self.tiles.get((x, y))
-    
+
+    def set_player_position(game_state=None, new_position=(0, 0)):
+        if not game_state:
+            game_state = GameStateManager.get()
+
+        try:
+            game_state["player_location"]["player_position"] = new_position
+            world = game_state["player_location"]["current_world"]
+            tile = world.get_tile(*new_position)
+            game_state["player_location"]["current_tile"] = tile
+            GameStateManager.set(game_state)
+        except Exception as e:
+            print(f"Could not change player position: {e}")
+
 class WorldGenerator:
     @classmethod
-    def generate(cls, width, height, worldType):
+    def generate(cls, width, height, worldType, seed=1234):
         if worldType == WorldTypes.NORMAL:
-            return cls._generate_normal_world(width, height)
+            return cls._generate_normal_world(width, height, seed)
     
     @classmethod
-    def _generate_normal_world(cls, width, height):
+    def _generate_normal_world(cls, width, height, seed):
         worldTiles = {}
         for x in range(width):
             for y in range(height):
                 biome = random.choice(list(Biome))
-                altitude = random.randint(0, 100)
+                altitude = cls._pseudo_noise(x, y, seed)
                 tile = Tile(x, y, biome, altitude)
                 worldTiles[(x, y)] = tile
         return worldTiles
+    
+    @staticmethod
+    def _pseudo_noise(x, y, seed):
+        key = f"{x},{y},{seed}".encode()
+        hash_val = hashlib.md5(key).hexdigest()
+        return int(hash_val[:4], 16) * 100 // 0xFFFF
 
 """
 myWorld = World("World 1")
