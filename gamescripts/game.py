@@ -56,11 +56,10 @@ def main(difficulty):
     possible_states = ["menu", "game"]
     state = "menu"
     commands = COMMANDS["MENU"]["COMMANDS"]
-    game_state = None
 
     while state != "exit":
         time.sleep(0.1)
-        uInput = input("What do you want to do? ")
+        uInput = input("\nWhat do you want to do? ")
         command, arg = parse_input(uInput)
         command_output = check_command(command, commands, state)
         if len(command_output) == 2:
@@ -68,10 +67,7 @@ def main(difficulty):
         
         if command_output[0]:
             if len(arg) > 0:
-                if command == "save":
-                    result = commands["save"](game_state, arg)
-                else:
-                    result = commands[command](arg)
+                result = commands[command](arg)
             else:
                 try: #try to run command without arguments
                     result = commands[command]()

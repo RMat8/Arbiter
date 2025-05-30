@@ -131,8 +131,8 @@ class GameCommands():
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         
-        output += "\nGame State:\n"
-        output += f"{GameStateManager.get()}"
+        output += f"{YELLOW}\nGame State:\n{RESET}"
+        output += f"{YELLOW}{GameStateManager.get()}{RESET}"
         return output
         
     @staticmethod
