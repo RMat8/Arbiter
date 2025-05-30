@@ -6,7 +6,7 @@ import configparser
 
 #modules
 from .colors import *
-from .saving import GameSaveSystem
+from .saving import GameSaveSystem, GameStateManager
 from .player import Player
 from .world import World, WorldTypes
 
@@ -35,7 +35,8 @@ class MenuCommands:
                 return "No save files found"
         else:
             try:
-                game_state = save_system.load_game(arg)
+                save = save_system.load_game(arg)
+                game_state = GameStateManager.get()
             except Exception as e:
                 return f"Error loading game: {e}"
 
@@ -67,7 +68,7 @@ class MenuCommands:
         name = input("Write your name> ")
         playerEntity = Player(name)
         initialWorld = World(name)
-        print(f"Hello, {name}, Your journey begins here.")
+        print(f"Hello, {CYAN}{name}{RESET}, Your journey begins here.")
         time.sleep(0.1)
         print("Type 'help' to learn more...\n")
         
@@ -103,6 +104,7 @@ class MenuCommands:
         # Save the new game state
         save_system = GameSaveSystem()
         save_system.new_game(game_state, save_name)
+        game_state = GameStateManager.get()
 
         # Start the main game loop
         return True, game_state
@@ -128,11 +130,18 @@ class GameCommands():
         output += "Available actions: \n"
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
+        
+        output += "\nGame State:\n"
+        output += f"{GameStateManager.get()}"
         return output
         
     @staticmethod
-    def save_command(game_state, name):
+    def save_command(game_state=None, name=None):
         save_system = GameSaveSystem()
+
+        if not game_state:
+            game_state = GameStateManager.get()
+
         if not name:
             name = GameSaveSystem.CURRENT_SAVE
 
@@ -141,6 +150,7 @@ class GameCommands():
     
     @staticmethod
     def quit_game():
+        GameStateManager.reset()
         return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
 
 COMMANDS = {

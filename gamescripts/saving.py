@@ -4,7 +4,10 @@ import shutil
 import pickle
 import configparser
 from datetime import datetime
+
+#modules
 from .world import World, WorldTypes
+
 class GameSaveSystem():
     SAVE_DIRECTORY = "gamedata\saves"
     CURRENT_SAVE = None
@@ -37,6 +40,7 @@ class GameSaveSystem():
                 config.write(save_config)
 
             GameSaveSystem.CURRENT_SAVE = slot_name
+            GameStateManager.set(game_state)
             print(f"Game created successfully at {save_path}")
             return True
         except Exception as e:
@@ -76,6 +80,7 @@ class GameSaveSystem():
                 game_state = pickle.load(save_file)
             
             GameSaveSystem.CURRENT_SAVE = slot_name
+            GameStateManager.set(game_state)
             print(f"Game loaded successfully from {save_path}")
             return game_state
         except Exception as e:
@@ -98,3 +103,18 @@ class GameSaveSystem():
             print(f"Save '{slot_name}' deleted successfully.")
         else:
             print(f"No save file found named '{slot_name}'.")
+
+class GameStateManager:
+    _state = None
+
+    @classmethod
+    def get(cls):
+        return cls._state
+    
+    @classmethod
+    def set(cls, game_state):
+        cls._state = game_state
+    
+    @classmethod
+    def reset(cls):
+        cls._state = None
