@@ -1,0 +1,20 @@
+[
+  {
+    "id": "healing_potion",
+    "name": "Healing Potion",
+    "type": "consumable",
+    "description": "Restores a small amount of health.",
+    "effects": {
+      "heal": 20
+    },
+    "value": 10
+  },
+  {
+    "id": "iron_sword",
+    "name": "Iron Sword",
+    "type": "weapon",
+    "description": "A basic iron sword.",
+    "damage": 12,
+    "value": 25
+  }
+]

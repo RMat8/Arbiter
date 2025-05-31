@@ -49,8 +49,12 @@ class MenuCommands:
     @staticmethod
     def delete_save_command(filename):
         save_system = GameSaveSystem()
-        save_system.delete_save(filename)
-        return "\n"
+        if filename == "*":
+            for save in save_system.list_saves():
+                save_system.delete_save(save)
+        else:
+            save_system.delete_save(filename)
+        return ""
 
     @staticmethod
     def list_saves_command():
@@ -173,6 +177,11 @@ class GameCommands():
         return ""
 
     @staticmethod
+    def region_map():
+        current_tile = GameStateManager.get()["player_location"]["current_tile"]
+        return current_tile.describe()
+
+    @staticmethod
     def quit_game():
         GameStateManager.reset()
         return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
@@ -201,12 +210,14 @@ COMMANDS = {
             "help": GameCommands.game_help,
             "save (save name; optional)": GameCommands.save_command,
             "map": GameCommands.world_map,
+            "region": GameCommands.region_map,
             "quit": GameCommands.quit_game
         },
         "DESCRIPTIONS" : {
             "help": "Displays a list of available actions.",
             "save (name)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
-            "map: Displays an altitude map of the known tiles."
+            "map": "Displays an altitude map of the known tiles.",
+            "region": "Displays a map of the current tile.",
             "quit": "Exits the saved game."
         }
     }

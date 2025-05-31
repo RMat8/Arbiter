@@ -38,16 +38,39 @@ class Biome(Enum):
     SWAMP = "Swamp"
     OCEAN = "Ocean"
 
+class Structure:
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return f"<Structure: {self.name}>"
+
+PLACEHOLDER_STRUCTURES = [
+    "Ancient Ruins", "Abandoned Hut", "Watchtower",
+    "Cave Entrance", "Forest Shrine", "Trading Post",
+    "Mysterious Statue", "Burial Site", "Old Campfire"
+]
+
 class Tile:
     def __init__(self, x, y, biome, altitude):
         self.x = x
         self.y = y
         self.biome = biome
         self.altitude = altitude
+        self.structures = self._generate_structures()
 
+    def _generate_structures(self):
+        num_structures = random.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
+        return [Structure(random.choice(PLACEHOLDER_STRUCTURES)) for _ in range(num_structures)]
+    
     def describe(self):
-        return f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
-
+        desc = f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
+        if self.structures:
+            desc += "\nStructures:" 
+            for s in self.structures:
+                desc += f"\n{s.name}"
+        return desc
+    
 class World:
     def __init__(self, name, width=10, height=10, worldType=WorldTypes.NORMAL):
         self.name = name
