@@ -1,0 +1,30 @@
+[
+    {
+        "id":"abandoned_hut",
+        "items": {
+            "tinderbox": 55,
+            "bone_necklace": 25,
+            "bronze_coin": 15,
+            "silver_coin": 5
+        }
+    },
+    {
+        "id":"dungeon_chest",
+        "items": {
+            "iron_dagger": 30,
+            "gold_coin": 30,
+            "silver_coin": 20,
+            "sapphire_ring": 15,
+            "fire_rune": 5
+        }
+    },
+    {
+        "id":"treasure_chest",
+        "items": {
+            "gold_coin": 60,
+            "silver_coin": 30,
+            "pearl": 8,
+            "flawless_pearl": 2  
+        }
+    }
+]

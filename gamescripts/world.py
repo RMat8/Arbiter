@@ -1,4 +1,6 @@
 #game/world.py
+import os
+import json
 from enum import Enum
 import random
 import hashlib
@@ -39,11 +41,33 @@ class Biome(Enum):
     OCEAN = "Ocean"
 
 class Structure:
-    def __init__(self, name):
+    def __init__(self, name, loottable):
         self.name = name
+        self.loottable = loottable
 
     def __repr__(self):
         return f"<Structure: {self.name}>"
+    
+    @staticmethod
+    def load_table_from_json(file_path="gamedata/resources/loot tables/loot_tables.json"):
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"No item file at {file_path}")
+        
+        with open(file_path, "r", encoding="utf-8") as f:
+            loot_tables = json.load(f)
+
+        loaded_tables = {}
+        for data in loot_tables:
+            table = Structure(
+                id_=data["id"],
+                #type_=data["type"],
+                **{k: v for k, v in data.items() if k not in ["id", "type"]}
+            )
+            loaded_tables[table] = table
+
+        return loaded_tables
+    
+LOOT_TABLES = Structure.load_table_from_json()
 
 PLACEHOLDER_STRUCTURES = [
     "Ancient Ruins", "Abandoned Hut", "Watchtower",
@@ -69,6 +93,7 @@ class Tile:
             desc += "\nStructures:" 
             for s in self.structures:
                 desc += f"\n{s.name}"
+                desc += f"\n{s.loottable}"
         return desc
     
 class World:
