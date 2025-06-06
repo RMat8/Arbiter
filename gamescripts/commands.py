@@ -10,6 +10,7 @@ from .saving import GameSaveSystem
 from .game_state_manager import GameStateManager
 from .player import Player
 from .world import World, WorldTypes
+from .item import ITEMS
 
 #menu command functions
 class MenuCommands:
@@ -180,6 +181,13 @@ class GameCommands():
     def region_map():
         current_tile = GameStateManager.get()["player_location"]["current_tile"]
         return current_tile.describe()
+    
+    @staticmethod
+    def catalogue():
+        for k, _v in ITEMS.items():
+            print(f"{k.name}: {k.description}")
+            print(f"Attributes: {k.attributes}")
+        return ""
 
     @staticmethod
     def quit_game():
@@ -211,6 +219,7 @@ COMMANDS = {
             "save (save name; optional)": GameCommands.save_command,
             "map": GameCommands.world_map,
             "region": GameCommands.region_map,
+            "catalogue": GameCommands.catalogue,
             "quit": GameCommands.quit_game
         },
         "DESCRIPTIONS" : {
