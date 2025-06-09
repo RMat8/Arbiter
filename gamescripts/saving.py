@@ -6,8 +6,8 @@ import configparser
 from datetime import datetime
 
 #modules
-from .world import World, WorldTypes
 from .game_state_manager import GameStateManager
+from .colors import *
 
 class GameSaveSystem():
     SAVE_DIRECTORY = "gamedata\saves"
@@ -101,6 +101,6 @@ class GameSaveSystem():
         save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)
         if os.path.exists(save_path):
             shutil.rmtree(save_path)
-            print(f"Save '{slot_name}' deleted successfully.")
+            print(f"Save '{BRIGHT_PURPLE}{BOLD}{slot_name}{RESET}' deleted successfully.")
         else:
             print(f"No save file found named '{slot_name}'.")

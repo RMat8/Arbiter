@@ -9,7 +9,7 @@ from .colors import *
 from .saving import GameSaveSystem
 from .game_state_manager import GameStateManager
 from .player import Player
-from .world import World, WorldTypes
+from .world import World, HostilityLevel
 from .item import ITEMS
 
 #menu command functions
@@ -73,7 +73,7 @@ class MenuCommands:
     @staticmethod
     def create_new_game(save_name): #this is the black box of the new_game_command
         # Introduce
-        print("Welcome")
+        print("\nWelcome")
         time.sleep(0.1)
         name = f"{CYAN}{input("Write your name> ")}{RESET}"
         playerEntity = Player(name)
@@ -136,8 +136,14 @@ class MenuCommands:
     def new_game_command(arg): #this is the function that acts as the command
         if not arg:
             arg = input("Enter the name of the save> ")
+        
+        print(f"{GREEN}DIFFICULTIES{RESET}\n")
+        for n, v in HostilityLevel.__members__.items():
+            print(f"{n}: {v.value}")
+        
+        difficulty = input("\nType a number to choose difficulty> ")
 
-        return ("New game created and started.", MenuCommands.create_new_game(arg)[1], "game")
+        return ("\nNew game created and started.", MenuCommands.create_new_game(arg)[1], "game")
 
     @staticmethod
     def exit_command(arg=None):

@@ -9,6 +9,17 @@ import hashlib
 from .game_state_manager import GameStateManager
 from .colors import *
 
+class HostilityLevel(Enum):
+    EASY = 1
+    NORMAL = 2
+    HARD = 3
+    EXTREME = 4
+    NIGHTMARE1 = 5
+    #secret difficulty levels below
+    NIGHTMARE2 = 6
+    NIGHTMARE3 = 7
+    NIGHTMARE4 = 8
+
 def pseudo_noise(x, y, seed=0, base_altitude=50, variance=10, spike_chance=0.02, spike_height=30):
     key = f"{x},{y},{seed}".encode()
     hash_val = hashlib.md5(key).hexdigest()
