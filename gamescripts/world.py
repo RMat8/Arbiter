@@ -40,6 +40,18 @@ class Biome(Enum):
     SWAMP = "Swamp"
     OCEAN = "Ocean"
 
+class Loot_Table:
+    def __init__(self, id_, items):
+        self.id = id_
+        self.items = items
+    
+    def __repr__(self):
+        desc = ""
+        desc += f"<Table: {self.id}>\n"
+        for k, v in self.items.items():
+            desc += f"{k}: {v}\n"
+        return desc
+
 class Structure:
     def __init__(self, name, loottable):
         self.name = name
@@ -58,16 +70,17 @@ class Structure:
 
         loaded_tables = {}
         for data in loot_tables:
-            table = Structure(
+            table = Loot_Table(
                 id_=data["id"],
                 #type_=data["type"],
-                **{k: v for k, v in data.items() if k not in ["id", "type"]}
+                items=data["items"]
             )
-            loaded_tables[table] = table
+            loaded_tables[data["id"]] = table
 
         return loaded_tables
     
 LOOT_TABLES = Structure.load_table_from_json()
+print(f"Loot tables: {LOOT_TABLES}")
 
 PLACEHOLDER_STRUCTURES = [
     "Ancient Ruins", "Abandoned Hut", "Watchtower",
@@ -83,10 +96,6 @@ class Tile:
         self.altitude = altitude
         self.structures = self._generate_structures()
 
-    def _generate_structures(self):
-        num_structures = random.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
-        return [Structure(random.choice(PLACEHOLDER_STRUCTURES)) for _ in range(num_structures)]
-    
     def describe(self):
         desc = f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
         if self.structures:
@@ -95,7 +104,18 @@ class Tile:
                 desc += f"\n{s.name}"
                 desc += f"\n{s.loottable}"
         return desc
-    
+
+    @staticmethod
+    def _generate_structures():
+        num_structures = random.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
+        return [
+            Structure(
+                name=random.choice(PLACEHOLDER_STRUCTURES),
+                loottable=random.choice(list(LOOT_TABLES.values()))
+            )
+            for _ in range(num_structures)
+        ]
+
 class World:
     def __init__(self, name, width=10, height=10, worldType=WorldTypes.NORMAL):
         self.name = name
