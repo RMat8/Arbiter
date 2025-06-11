@@ -110,10 +110,10 @@ class Tile:
     def describe(self):
         desc = f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
         if self.structures:
-            desc += "\nStructures:" 
+            desc += f"\nStructures:" 
             for s in self.structures:
                 desc += f"\n{s.name}"
-                desc += f"\n{s.loottable}"
+                desc += f"\n{YELLOW}{s.loottable}{RESET}"
         return desc
 
     @staticmethod
@@ -128,7 +128,7 @@ class Tile:
         ]
 
 class World:
-    def __init__(self, name, width=10, height=10, worldType=WorldTypes.NORMAL):
+    def __init__(self, name, width=50, height=50, worldType=WorldTypes.NORMAL):
         self.name = name
         self.worldType = worldType
         self.width = width
@@ -151,8 +151,24 @@ class World:
         except Exception as e:
             print(f"Could not change player position: {e}")
     
-    def print_altitude_map(self):
+    def print_altitude_map(self, display_width=50):
         print("\n")
+        step_x = max(1, self.width // display_width)
+        step_y = max(1, self.height // display_width)
+
+        for y in range(0, self.height, step_y):
+            row = ""
+            for x in range(0, self.width, step_x):
+                tile = self.get_tile(x, y)
+                if tile:
+                    color = blue_shade(tile.altitude)
+                    row += f"{color}{tile.altitude}{RESET}"
+                else:
+                    row += "?"
+            print(row)
+        return "\n"
+        
+        """
         for y in range(self.height):
             row = ""
             for x in range(self.width):
@@ -164,6 +180,7 @@ class World:
                     row += " ?  "
             print(row)
         return "\n"
+        """
 
 class WorldGenerator:
     @classmethod

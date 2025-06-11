@@ -32,11 +32,31 @@ def game_init():
     main(difficulty="normal")
 
 def parse_input(userInput):
-    parts = userInput.lower().strip().split(maxsplit=1)
-    return parts[0], parts[1] if len(parts) > 1 else ""
+    chunks = userInput.strip().split(" -")
+    parsed = []
 
-def check_command(command, command_list, state):
+    for i, chunk in enumerate(chunks):
+        if not chunk:
+            continue
+        parts = chunk.strip().split()
+        if not parts:
+            continue
+        command = parts[0].lower()
+        args = parts[1:] if len(parts) > 1 else []
+        parsed.append((command, args))
+
+    """
+    parts = userInput.strip().split()
+    command = parts[0].lower() if parts else ""
+    args = parts[1:]
+    return command, args
+    """
+    return parsed
+
+def check_command(command, command_list):
     output = []
+
+    game_state = GameStateManager.get()
 
     if command in command_list:
         output.append(True)
@@ -60,28 +80,27 @@ def main(difficulty):
     while state != "exit":
         time.sleep(0.1)
         uInput = input("\nWhat do you want to do? ")
-        command, arg = parse_input(uInput)
-        command_output = check_command(command, commands, state)
-        if len(command_output) == 2:
-            state = command_output[1]
-        
-        if command_output[0]:
-            if len(arg) > 0:
-                result = commands[command](arg)
-            else:
-                try: #try to run command without arguments
-                    result = commands[command]()
-                except Exception as e:
-                    print(f"An error occurred: {e}")
+        command_blocks = parse_input(uInput)
+ 
+        for i in command_blocks:
+            command = i[0]
+            args = i[1]
+
+            command_output = check_command(command, commands)
+            if not command_output[0]:
+                continue
             
-            if type(result) == tuple:
+            try:
+                result = commands[command](*args) if args else commands[command]()
+            except Exception as e:
+                print(f"An error occurred: {e}")
+                continue
+        
+            if isinstance(result, tuple):
                 print(result[0])
                 game_state = result[1]
-                try:
+                if len(result) > 2 and result[2] in possible_states:
                     state = result[2]
-                except Exception as e:
-                    print(f"Output error: {e}")
-
             else:
                 print(result)
 

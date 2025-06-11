@@ -48,13 +48,18 @@ class MenuCommands:
         return (f"Save succesfully loaded\nWelcome back, {game_state["player"].name}", game_state, "game")
 
     @staticmethod
-    def delete_save_command(filename):
-        save_system = GameSaveSystem()
-        if filename == "*":
-            for save in save_system.list_saves():
-                save_system.delete_save(save)
-        else:
-            save_system.delete_save(filename)
+    def delete_save_command(filename, confirmation=None):
+        if not confirmation == "Y":
+            confirmation = input("Are you sure? Type Y/N> ")
+        
+        if confirmation == "Y":
+            save_system = GameSaveSystem()
+            if filename == "*":
+                for save in save_system.list_saves():
+                    save_system.delete_save(save)
+            else:
+                save_system.delete_save(filename)
+
         return ""
 
     @staticmethod
@@ -71,13 +76,13 @@ class MenuCommands:
         return output
 
     @staticmethod
-    def create_new_game(save_name): #this is the black box of the new_game_command
+    def create_new_game(save_name, player_name): #this is the black box of the new_game_command
         # Introduce
         print("\nWelcome")
         time.sleep(0.1)
-        name = f"{CYAN}{input("Write your name> ")}{RESET}"
-        playerEntity = Player(name)
-        initialWorld = World(name)
+
+        playerEntity = Player(f"{CYAN}{player_name}{RESET}")
+        initialWorld = World(save_name)
 
         """ #display tile data
         print(f"World: {initialWorld.name}")
@@ -90,7 +95,7 @@ class MenuCommands:
         initialWorld.print_altitude_map()
         """
 
-        print(f"Hello, {name}, Your journey begins here.")
+        print(f"Hello, {player_name}, Your journey begins here.")
         time.sleep(0.1)
         print("Type 'help' to learn more...\n")
         
@@ -127,29 +132,33 @@ class MenuCommands:
         # Save the new game state
         save_system = GameSaveSystem()
         save_system.new_game(game_state, save_name)
-        game_state = GameStateManager.get()
+        game_state = f"{YELLOW}{GameStateManager.get()}{RESET}"
+        print(game_state)
 
         # Start the main game loop
-        return True, game_state
+        return True, f"{YELLOW}{game_state}{RESET}"
 
     @staticmethod
-    def new_game_command(arg): #this is the function that acts as the command
-        if not arg:
-            arg = input("Enter the name of the save> ")
+    def new_game_command(save_name, difficulty=None, player_name=None): #this is the function that acts as the command
+        if not save_name:
+            save_name = input("Enter the name of the save> ")
         
-        print(f"{GREEN}DIFFICULTIES{RESET}\n")
-        for n, v in HostilityLevel.__members__.items():
-            print(f"{n}: {v.value}")
-        
-        difficulty = input("\nType a number to choose difficulty> ")
+        if not difficulty:
+            print(f"{GREEN}DIFFICULTIES{RESET}\n")
+            for n, v in HostilityLevel.__members__.items():
+                print(f"{n}: {v.value}")
+            
+            difficulty = input("\nType a number to choose difficulty> ")
 
-        return ("\nNew game created and started.", MenuCommands.create_new_game(arg)[1], "game")
+        if not player_name:
+            player_name = input("Write your name> ")
+
+        return ("\nNew game created and started.", MenuCommands.create_new_game(save_name, player_name)[1], "game")
 
     @staticmethod
     def exit_command(arg=None):
         print("Exiting the game. Goodbye!")
         sys.exit()
-
 
 #ingame command functions
 class GameCommands():
@@ -196,9 +205,13 @@ class GameCommands():
         return ""
 
     @staticmethod
-    def quit_game():
-        GameStateManager.reset()
-        return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
+    def quit_game(game_exit=None):
+        if not game_exit == "exit":
+            GameStateManager.reset()
+            return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
+        else:
+            GameStateManager.reset()
+            MenuCommands.exit_command()
 
 COMMANDS = {
     "MENU": {
