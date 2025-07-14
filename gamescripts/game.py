@@ -35,7 +35,7 @@ def parse_input(userInput):
     chunks = userInput.strip().split(" -")
     parsed = []
 
-    for i, chunk in enumerate(chunks):
+    for _, chunk in enumerate(chunks):
         if not chunk:
             continue
         parts = chunk.strip().split()
@@ -77,12 +77,13 @@ def main(difficulty):
     state = "menu"
     commands = COMMANDS["MENU"]["COMMANDS"]
 
-    while state != "exit":
+    while state != "exit": #game loop
         time.sleep(0.1)
         uInput = input("\nWhat do you want to do? ")
         command_blocks = parse_input(uInput)
- 
-        for i in command_blocks:
+
+        print(f"{YELLOW}Command blocks: {len(command_blocks)}{RESET}")
+        for i in command_blocks: #input loop
             command = i[0]
             args = i[1]
 
@@ -92,6 +93,7 @@ def main(difficulty):
             
             try:
                 result = commands[command](*args) if args else commands[command]()
+
             except Exception as e:
                 print(f"An error occurred: {e}")
                 continue
@@ -106,3 +108,9 @@ def main(difficulty):
 
             if state in possible_states:
                 commands = COMMANDS[state.upper()]["COMMANDS"]
+
+        if not command == "info":
+            try:
+                print(commands["info"]())
+            except:
+                pass

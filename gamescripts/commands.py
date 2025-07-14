@@ -10,7 +10,7 @@ from .colors import *
 from .saving import GameSaveSystem
 from .game_state_manager import GameStateManager
 from .player import Player
-from .world import World, HostilityLevel
+from .world import World, HostilityLevel, Biome
 from .item import ITEMS
 
 #menu command functions
@@ -79,9 +79,6 @@ class MenuCommands:
     @staticmethod
     def create_new_game(save_name, player_name, seed): #this is the black box of the new_game_command
         # Introduce
-        print("\nWelcome")
-        time.sleep(0.1)
-
         playerEntity = Player(f"{CYAN}{player_name}{RESET}")
         initialWorld = World(save_name, seed)
 
@@ -169,6 +166,12 @@ class MenuCommands:
 #ingame command functions
 class GameCommands():
     @staticmethod
+    def master_info(): #both implicitly and explicitly called
+        output = f"INFO PLACEHOLDER\n"
+        output += f"{Biome.ICECAP}"
+        return output
+
+    @staticmethod
     def game_help():
         output = "\n"
         output += f"{BRIGHT_PURPLE}Available actions: {RESET}\n"
@@ -214,7 +217,7 @@ class GameCommands():
     def quit_game(game_exit=None):
         if not game_exit == "exit":
             GameStateManager.reset()
-            return ("Exiting the saved game", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
+            return ("Exiting the saved game\n", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
         else:
             GameStateManager.reset()
             MenuCommands.exit_command()
@@ -240,6 +243,7 @@ COMMANDS = {
     },
     "GAME": {
         "COMMANDS": {
+            "info": GameCommands.master_info,
             "help": GameCommands.game_help,
             "save (save name; optional)": GameCommands.save_command,
             "map": GameCommands.world_map,
@@ -248,6 +252,7 @@ COMMANDS = {
             "quit": GameCommands.quit_game
         },
         "DESCRIPTIONS" : {
+            "info": "Shows general info about your current surroundings and situation.",
             "help": "Displays a list of available actions.",
             "save (name)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
             "map": "Displays an altitude map of the known tiles.",

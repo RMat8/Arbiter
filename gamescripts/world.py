@@ -193,20 +193,6 @@ class World:
                     row += "?"
             print(row)
         return "\n"
-        
-        """
-        for y in range(self.height):
-            row = ""
-            for x in range(self.width):
-                tile = self.get_tile(x, y)
-                if tile:
-                    color = blue_shade(tile.altitude)
-                    row += f"{color}{tile.altitude:3}{RESET}"
-                else:
-                    row += " ?  "
-            print(row)
-        return "\n"
-        """
 
 class WorldGenerator:
     @classmethod
@@ -229,11 +215,3 @@ class WorldGenerator:
     @staticmethod
     def _get_altitude(x, y, seed=0):
         return get_altitude(x, y, seed)
-
-"""
-myWorld = World("World 1")
-print(f"World: {myWorld.name}")
-print(f"Tile count: {len(myWorld.tiles)}")
-for coords, tile in myWorld.tiles.items():
-    print(f"{coords}: {tile.describe()}")
-"""
