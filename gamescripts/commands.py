@@ -3,6 +3,7 @@ import os
 import sys
 import time
 import configparser
+import random
 
 #modules
 from .colors import *
@@ -76,13 +77,13 @@ class MenuCommands:
         return output
 
     @staticmethod
-    def create_new_game(save_name, player_name): #this is the black box of the new_game_command
+    def create_new_game(save_name, player_name, seed): #this is the black box of the new_game_command
         # Introduce
         print("\nWelcome")
         time.sleep(0.1)
 
         playerEntity = Player(f"{CYAN}{player_name}{RESET}")
-        initialWorld = World(save_name)
+        initialWorld = World(save_name, seed)
 
         """ #display tile data
         print(f"World: {initialWorld.name}")
@@ -139,7 +140,7 @@ class MenuCommands:
         return True, f"{YELLOW}{game_state}{RESET}"
 
     @staticmethod
-    def new_game_command(save_name, difficulty=None, player_name=None): #this is the function that acts as the command
+    def new_game_command(save_name=None, difficulty=None, player_name=None, seed=None): #this is the function that acts as the command
         if not save_name:
             save_name = input("Enter the name of the save> ")
         
@@ -147,14 +148,19 @@ class MenuCommands:
             print(f"{GREEN}DIFFICULTIES{RESET}\n")
             for n, v in HostilityLevel.__members__.items():
                 print(f"{n}: {v.value}")
-            
+
             difficulty = input("\nType a number to choose difficulty> ")
 
         if not player_name:
             player_name = input("Write your name> ")
+        else:
+            seed = int(seed)
 
-        return ("\nNew game created and started.", MenuCommands.create_new_game(save_name, player_name)[1], "game")
+        if not seed:
+            seed = random.randint(0, 99999999)
 
+        return ("\nNew game created and started.", MenuCommands.create_new_game(save_name, player_name, seed)[1], "game")
+    
     @staticmethod
     def exit_command(arg=None):
         print("Exiting the game. Goodbye!")

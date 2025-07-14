@@ -1,13 +1,15 @@
 #game/world.py
 import os
 import json
-from enum import Enum
+from dataclasses import dataclass
+from enum import Enum, auto
 import random
 import hashlib
 
 #modules
 from .game_state_manager import GameStateManager
 from .colors import *
+from .noise import layered_noise
 
 class HostilityLevel(Enum):
     EASY = 1
@@ -20,20 +22,9 @@ class HostilityLevel(Enum):
     NIGHTMARE3 = 7
     NIGHTMARE4 = 8
 
-def pseudo_noise(x, y, seed=0, base_altitude=50, variance=10, spike_chance=0.02, spike_height=30):
-    key = f"{x},{y},{seed}".encode()
-    hash_val = hashlib.md5(key).hexdigest()
-    noise_val = int(hash_val[:4], 16) / 0xFFFF
-
-    variation = (noise_val - 0.5) * 2 * variance  # -variance to +variance
-    altitude = int(base_altitude + variation)
-
-    if noise_val > (1.0 - spike_chance):
-        altitude += spike_height
-    elif noise_val < spike_chance:
-        altitude -= spike_height
-
-    return max(0, min(100, altitude))
+def get_altitude(x, y, seed=0):
+    val = layered_noise(x, y, seed, scale=0.03, octaves=4)
+    return int(val * 100)
 
 class WorldTypes(Enum):
     NORMAL = 1
@@ -43,13 +34,47 @@ class WorldTypes(Enum):
     ARCHIPELAGO = 5
     CLAUSTROPHOBIA = 6
 
+
 class Biome(Enum):
-    PLAINS = "Plains"
-    FOREST = "Forest"
-    DESERT = "Desert"
-    MOUNTAINS = "Mountains"
-    SWAMP = "Swamp"
-    OCEAN = "Ocean"
+    def __new__(cls, name, temp, humidity, altitude, hostility):
+        obj = object.__new__(cls)
+        obj._value_ = name  # This becomes the enum's value
+        obj.temperature = temp
+        obj.humidity = humidity
+        obj.altitude = altitude
+        obj.hostility = hostility
+        return obj
+
+    #Polar
+    ICECAP = ("Icecap", "cold", "dry", "highland", 8)
+    TUNDRA = ("Tundra", "cold", "normal", "midland", 6)
+
+    #Arid
+    DESERT = ("Desert", "hot", "dry", "lowland", 5)
+    STEPPE = ("Steppe", "temperate", "dry", "midland", 3)
+
+    #Temperate
+    PLAINS = ("Plains", "temperate", "normal", "lowland", 1)
+    FOREST = ("Forest", "temperate", "wet", "midland", 2)
+    HILLS = ("Hills", "temperate", "normal", "midland", 2)
+    WETLANDS = ("Wetlands", "temperate", "wet", "lowland", 4)
+
+    #Tropical
+    RAINFOREST = ("Rainforest", "hot", "wet", "lowland", 6)
+    SAVANNA = ("Savanna", "hot", "normal", "lowland", 3)
+    JUNGLE = ("Jungle", "hot", "wet", "midland", 5)
+    MANGROVE = ("Mangrove", "hot", "very wet", "coastal", 4)
+
+    #Aquatic
+    OCEAN = ("Ocean", "varies", "very wet", "sea", 2)
+    LAKE = ("Lake", "varies", "very wet", "lowland", 1)
+    RIVER = ("River", "varies", "very wet", "lowland", 1)
+    SWAMP = ("Swamp", "temperate", "very wet", "lowland", 4)
+    MARSH = ("Marsh", "temperate", "very wet", "lowland", 3)
+
+    #Mountainous
+    ALPINE = ("Alpine", "cold", "normal", "highland", 7)
+    ROCKY_MOUNTAIN = ("Rocky Mountains", "cold", "dry", "highland", 7)
 
 class Loot_Table:
     def __init__(self, id_, items):
@@ -128,12 +153,13 @@ class Tile:
         ]
 
 class World:
-    def __init__(self, name, width=50, height=50, worldType=WorldTypes.NORMAL):
+    def __init__(self, name, seed, width=50, height=50, worldType=WorldTypes.NORMAL):
         self.name = name
+        self.seed = seed
         self.worldType = worldType
         self.width = width
         self.height = height
-        self.tiles = WorldGenerator.generate(width, height, WorldTypes.NORMAL)
+        self.tiles = WorldGenerator.generate(width, height, WorldTypes.NORMAL, seed)
     
     def get_tile(self, x, y):
         return self.tiles.get((x, y))
@@ -184,28 +210,25 @@ class World:
 
 class WorldGenerator:
     @classmethod
-    def generate(cls, width, height, worldType, seed=1234):
+    def generate(cls, width, height, worldType, seed):
         if worldType == WorldTypes.NORMAL:
             return cls._generate_normal_world(width, height, seed)
     
     @classmethod
     def _generate_normal_world(cls, width, height, seed):
         worldTiles = {}
+        print(f"{YELLOW}[DEBUG] seed={seed}, type={type(seed)}{RESET}")
         for x in range(width):
             for y in range(height):
                 biome = random.choice(list(Biome))
-                altitude = cls._pseudo_noise(x, y, seed)
+                altitude = cls._get_altitude(x, y, seed)
                 tile = Tile(x, y, biome, altitude)
                 worldTiles[(x, y)] = tile
         return worldTiles
     
     @staticmethod
-    def _pseudo_noise(x, y, seed):
-        return pseudo_noise(x, y, 
-                            seed, base_altitude=50, 
-                            variance=8, 
-                            spike_chance=0.12, #0.015
-                            spike_height=25)
+    def _get_altitude(x, y, seed=0):
+        return get_altitude(x, y, seed)
 
 """
 myWorld = World("World 1")
