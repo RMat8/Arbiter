@@ -27,9 +27,9 @@ def blue_shade(altitude):
     """
     altitude = max(0, min(100, altitude))
 
-    red   = int((altitude / 100) * 40)
-    green = int((altitude / 100) * 180)
-    blue  = int(50 + (altitude / 100) * 220)
+    red   = int((altitude / 100) * 40) #int((altitude / 100) * 40)
+    green = int(100 + (altitude / 95) * 220) #int((altitude / 100) * 180)
+    blue  = int((altitude / 100) * 180) #int(50 + (altitude / 100) * 220)
 
     return f"\033[38;2;{red};{green};{blue}m"
 
