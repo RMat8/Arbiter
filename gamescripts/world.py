@@ -138,7 +138,7 @@ class Tile:
             desc += f"\nStructures:" 
             for s in self.structures:
                 desc += f"\n{s.name}"
-                desc += f"\n{YELLOW}{s.loottable}{RESET}"
+                desc += debug(f"\n{s.loottable}")
         return desc
 
     @staticmethod
@@ -203,7 +203,7 @@ class WorldGenerator:
     @classmethod
     def _generate_normal_world(cls, width, height, seed):
         worldTiles = {}
-        print(f"{YELLOW}[DEBUG] seed={seed}, type={type(seed)}{RESET}")
+        print(debug(f"[DEBUG] seed={seed}, type={type(seed)}"))
         for x in range(width):
             for y in range(height):
                 biome = random.choice(list(Biome))

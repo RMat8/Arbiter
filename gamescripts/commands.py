@@ -130,11 +130,11 @@ class MenuCommands:
         # Save the new game state
         save_system = GameSaveSystem()
         save_system.new_game(game_state, save_name)
-        game_state = f"{YELLOW}{GameStateManager.get()}{RESET}"
+        game_state = debug(f"{GameStateManager.get()}")
         print(game_state)
 
         # Start the main game loop
-        return True, f"{YELLOW}{game_state}{RESET}"
+        return True, game_state
 
     @staticmethod
     def new_game_command(save_name=None, difficulty=None, player_name=None, seed=None): #this is the function that acts as the command
@@ -168,7 +168,7 @@ class GameCommands():
     @staticmethod
     def master_info(): #both implicitly and explicitly called
         output = f"INFO PLACEHOLDER\n"
-        output += f"{Biome.ICECAP}"
+        output += debug(f"{Biome.ICECAP}")
         return output
 
     @staticmethod
@@ -178,9 +178,9 @@ class GameCommands():
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         
-        output += f"{YELLOW}\nGame State:\n{RESET}"
-        output += f"{YELLOW}{GameStateManager.get()}{RESET}"
-        return output
+        output += f"\nGame State:\n"
+        output += f"{GameStateManager.get()}"
+        return debug(output)
         
     @staticmethod
     def save_command(game_state=None, name=None):

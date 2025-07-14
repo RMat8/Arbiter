@@ -82,7 +82,7 @@ def main(difficulty):
         uInput = input("\nWhat do you want to do? ")
         command_blocks = parse_input(uInput)
 
-        print(f"{YELLOW}Command blocks: {len(command_blocks)}{RESET}")
+        print(debug(f"Command blocks: {len(command_blocks)}"))
         for i in command_blocks: #input loop
             command = i[0]
             args = i[1]

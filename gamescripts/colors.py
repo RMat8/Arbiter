@@ -32,3 +32,6 @@ def blue_shade(altitude):
     blue  = int(50 + (altitude / 100) * 220)
 
     return f"\033[38;2;{red};{green};{blue}m"
+
+def debug(text):
+    return f"{YELLOW}{text}{RESET}"
