@@ -104,15 +104,6 @@ class MenuCommands:
         startingWorldType = config["gameSettings"]["startingWorldType"]"""
 
         # Initialize game state
-        """        game_state = {
-            "name": saveName,
-            "worldType": startingWorldType,
-            "player": { #to be revised
-                "name": name,
-                "position": (0, 0)  # Assuming starting position is (0, 0)
-            }
-        }"""
-
         game_state = {
             "worlds": [initialWorld],
             "player": playerEntity,

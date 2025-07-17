@@ -1,7 +1,6 @@
 #game/noise.py
-
 import math
-import random
+from .colors import *
 
 def lerp(a, b, t):
     return a + t * (b - a)
@@ -9,7 +8,7 @@ def lerp(a, b, t):
 def fade(t):
     return t * t * (3 - 2 * t)
 
-def gradient_noise(x, y, seed=0, scale=0.01): #scale=0.1
+def gradient_noise(x, y, seed=0, scale=0.005): #scale=0.1
     seed = int(seed)
     x *= scale
     y *= scale
@@ -39,9 +38,9 @@ def gradient_noise(x, y, seed=0, scale=0.01): #scale=0.1
 
     return final
 
-def layered_noise(x, y, seed=0, scale=0.002, octaves=12, persistence=0.5): #scale=0.05
+def layered_noise(x, y, seed=0, scale=0.02, octaves=8, persistence=0.7): #scale=0.05 persistence=0.5
     total = 0
-    amplitude = 1
+    amplitude = 12 #1
     max_amplitude = 0
 
     for i in range(octaves):

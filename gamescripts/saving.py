@@ -11,6 +11,7 @@ from .colors import *
 
 class GameSaveSystem():
     SAVE_DIRECTORY = "gamedata\saves"
+    os.makedirs(SAVE_DIRECTORY, exist_ok=True)
     CURRENT_SAVE = None
 
     @staticmethod

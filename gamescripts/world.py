@@ -23,8 +23,8 @@ class HostilityLevel(Enum):
     NIGHTMARE4 = 8
 
 def get_altitude(x, y, seed=0):
-    val = layered_noise(x, y, seed, scale=0.03, octaves=4)
-    return int(val * 100)
+    val = layered_noise(x, y, seed, scale=0.03, octaves=8)
+    return int(val * 100) + 19
 
 class WorldTypes(Enum):
     NORMAL = 1
@@ -34,43 +34,41 @@ class WorldTypes(Enum):
     ARCHIPELAGO = 5
     CLAUSTROPHOBIA = 6
 
+@dataclass
+class BiomeData:
+    name: str
+    temperature: str
+    humidity: str
+    altitude: str
+    hostility: int
 
 class Biome(Enum):
-    def __new__(cls, name, temp, humidity, altitude, hostility):
-        obj = object.__new__(cls)
-        obj._value_ = name  # This becomes the enum's value
-        obj.temperature = temp
-        obj.humidity = humidity
-        obj.altitude = altitude
-        obj.hostility = hostility
-        return obj
-
     #Polar
-    ICECAP = ("Icecap", "cold", "dry", "highland", 8)
-    TUNDRA = ("Tundra", "cold", "normal", "midland", 6)
+    ICECAP = BiomeData("Icecap", "cold", "dry", "highland", 8)
+    TUNDRA = BiomeData("Tundra", "cold", "normal", "midland", 6)
 
     #Arid
-    DESERT = ("Desert", "hot", "dry", "lowland", 5)
-    STEPPE = ("Steppe", "temperate", "dry", "midland", 3)
+    DESERT = BiomeData("Desert", "hot", "dry", "lowland", 5)
+    STEPPE = BiomeData("Steppe", "temperate", "dry", "midland", 3)
 
     #Temperate
-    PLAINS = ("Plains", "temperate", "normal", "lowland", 1)
-    FOREST = ("Forest", "temperate", "wet", "midland", 2)
-    HILLS = ("Hills", "temperate", "normal", "midland", 2)
-    WETLANDS = ("Wetlands", "temperate", "wet", "lowland", 4)
+    PLAINS = BiomeData("Plains", "temperate", "normal", "lowland", 1)
+    FOREST = BiomeData("Forest", "temperate", "wet", "midland", 2)
+    HILLS = BiomeData("Hills", "temperate", "normal", "midland", 2)
+    WETLANDS = BiomeData("Wetlands", "temperate", "wet", "lowland", 4)
 
     #Tropical
-    RAINFOREST = ("Rainforest", "hot", "wet", "lowland", 6)
-    SAVANNA = ("Savanna", "hot", "normal", "lowland", 3)
-    JUNGLE = ("Jungle", "hot", "wet", "midland", 5)
-    MANGROVE = ("Mangrove", "hot", "very wet", "coastal", 4)
+    RAINFOREST = BiomeData("Rainforest", "hot", "wet", "lowland", 6)
+    SAVANNA = BiomeData("Savanna", "hot", "normal", "lowland", 3)
+    JUNGLE = BiomeData("Jungle", "hot", "wet", "midland", 5)
+    MANGROVE = BiomeData("Mangrove", "hot", "very wet", "coastal", 4)
 
     #Aquatic
-    OCEAN = ("Ocean", "varies", "very wet", "sea", 2)
-    LAKE = ("Lake", "varies", "very wet", "lowland", 1)
-    RIVER = ("River", "varies", "very wet", "lowland", 1)
-    SWAMP = ("Swamp", "temperate", "very wet", "lowland", 4)
-    MARSH = ("Marsh", "temperate", "very wet", "lowland", 3)
+    OCEAN = BiomeData("Ocean", "varies", "very wet", "sea", 2)
+    LAKE = BiomeData("Lake", "varies", "very wet", "lowland", 1)
+    RIVER = BiomeData("River", "varies", "very wet", "lowland", 1)
+    SWAMP = BiomeData("Swamp", "temperate", "very wet", "lowland", 4)
+    MARSH = BiomeData("Marsh", "temperate", "very wet", "lowland", 3)
 
     #Mountainous
     ALPINE = ("Alpine", "cold", "normal", "highland", 7)
@@ -131,6 +129,7 @@ class Tile:
         self.biome = biome
         self.altitude = altitude
         self.structures = self._generate_structures()
+        self.entities = []
 
     def describe(self):
         desc = f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
@@ -187,7 +186,7 @@ class World:
             for x in range(0, self.width, step_x):
                 tile = self.get_tile(x, y)
                 if tile:
-                    color = blue_shade(tile.altitude)
+                    color = gradient_shade(tile.altitude)
                     row += f"{color}{tile.altitude}{RESET}"
                 else:
                     row += "?"
@@ -210,6 +209,7 @@ class WorldGenerator:
                 altitude = cls._get_altitude(x, y, seed)
                 tile = Tile(x, y, biome, altitude)
                 worldTiles[(x, y)] = tile
+        
         return worldTiles
     
     @staticmethod
