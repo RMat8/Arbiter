@@ -109,7 +109,6 @@ class MenuCommands:
             "player": playerEntity,
             "player_location": {
                 "current_world": initialWorld,
-                "current_region": None,
                 "player_position": (0, 0),
                 "current_tile": initialWorld.get_tile(0, 0)
             }
@@ -158,20 +157,26 @@ class MenuCommands:
 class GameCommands():
     @staticmethod
     def master_info(): #both implicitly and explicitly called
-        output = f"INFO PLACEHOLDER\n"
-        output += debug(f"{Biome.ICECAP}")
+        output = f"\nINFO PLACEHOLDER\n"
+        game_state = GameStateManager.get()
+        current_biome = game_state["player_location"]["current_tile"].biome
+
+        #print(f"{GREEN}{current_biome}{RESET}")
+        output += debug(current_biome)
         return output
 
     @staticmethod
     def game_help():
+        #describe available commands and their uses
         output = "\n"
         output += f"{BRIGHT_PURPLE}Available actions: {RESET}\n"
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{command}: {description}\n"
         
-        output += f"\nGame State:\n"
-        output += f"{GameStateManager.get()}"
-        return debug(output)
+        #temporary game_state data dump for debugging purposes
+        output += debug(f"Game State:\n")
+        output += debug(f"{GameStateManager.get()}")
+        return output
         
     @staticmethod
     def save_command(game_state=None, name=None):

@@ -123,9 +123,10 @@ PLACEHOLDER_STRUCTURES = [
 ]
 
 class Tile:
-    def __init__(self, x, y, biome, altitude):
+    def __init__(self, x, y, biome, altitude, seed=0):
         self.x = x
         self.y = y
+        self.seed = seed
         self.biome = biome
         self.altitude = altitude
         self.structures = self._generate_structures()
@@ -140,6 +141,7 @@ class Tile:
                 desc += debug(f"\n{s.loottable}")
         return desc
 
+    """
     @staticmethod
     def _generate_structures():
         num_structures = random.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
@@ -149,6 +151,18 @@ class Tile:
                 loottable=random.choice(list(LOOT_TABLES.values()))
             )
             for _ in range(num_structures)
+        ]
+    """
+    def _generate_structures(self):
+        tile_seed = f"{self.x},{self.y},{self.seed}"
+        rng = random.Random(tile_seed)
+
+        num_structures = rng.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
+        return [
+            Structure(
+                name=rng.choice(PLACEHOLDER_STRUCTURES),
+                loottable=rng.choice(list(LOOT_TABLES.values()))
+            )
         ]
 
 class World:
@@ -202,12 +216,12 @@ class WorldGenerator:
     @classmethod
     def _generate_normal_world(cls, width, height, seed):
         worldTiles = {}
-        print(debug(f"[DEBUG] seed={seed}, type={type(seed)}"))
+        print(debug(f"seed={seed}, type={type(seed)}"))
         for x in range(width):
             for y in range(height):
                 biome = random.choice(list(Biome))
                 altitude = cls._get_altitude(x, y, seed)
-                tile = Tile(x, y, biome, altitude)
+                tile = Tile(x, y, biome, altitude, seed)
                 worldTiles[(x, y)] = tile
         
         return worldTiles

@@ -62,4 +62,5 @@ def gradient_shade(altitude):
     return f"\033[38;2;{r};{g};{b}m"
 
 def debug(text):
-    return f"{YELLOW}{text}{RESET}"
+    prefix = "[DEBUG] "
+    return f"{YELLOW}{prefix}{text}{RESET}"
