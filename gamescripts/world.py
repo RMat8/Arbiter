@@ -1,15 +1,14 @@
 #game/world.py
 import os
 import json
-from dataclasses import dataclass
 from enum import Enum, auto
 import random
-import hashlib
 
 #modules
 from .game_state_manager import GameStateManager
 from .colors import *
 from .noise import layered_noise
+from .time import GameTime
 
 class HostilityLevel(Enum):
     EASY = 1
@@ -34,45 +33,37 @@ class WorldTypes(Enum):
     ARCHIPELAGO = 5
     CLAUSTROPHOBIA = 6
 
-@dataclass
-class BiomeData:
-    name: str
-    temperature: str
-    humidity: str
-    altitude: str
-    hostility: int
-
 class Biome(Enum):
     #Polar
-    ICECAP = BiomeData("Icecap", "cold", "dry", "highland", 8)
-    TUNDRA = BiomeData("Tundra", "cold", "normal", "midland", 6)
+    ICECAP = "Icecap"
+    TUNDRA = "Tundra"
 
     #Arid
-    DESERT = BiomeData("Desert", "hot", "dry", "lowland", 5)
-    STEPPE = BiomeData("Steppe", "temperate", "dry", "midland", 3)
+    DESERT = "Desert"
+    STEPPE = "Steppe"
 
     #Temperate
-    PLAINS = BiomeData("Plains", "temperate", "normal", "lowland", 1)
-    FOREST = BiomeData("Forest", "temperate", "wet", "midland", 2)
-    HILLS = BiomeData("Hills", "temperate", "normal", "midland", 2)
-    WETLANDS = BiomeData("Wetlands", "temperate", "wet", "lowland", 4)
+    PLAINS = "Plains"
+    FOREST = "Forest"
+    HILLS = "Hills"
+    WETLANDS = "Wetlands"
 
     #Tropical
-    RAINFOREST = BiomeData("Rainforest", "hot", "wet", "lowland", 6)
-    SAVANNA = BiomeData("Savanna", "hot", "normal", "lowland", 3)
-    JUNGLE = BiomeData("Jungle", "hot", "wet", "midland", 5)
-    MANGROVE = BiomeData("Mangrove", "hot", "very wet", "coastal", 4)
+    RAINFOREST = "Rainforest"
+    SAVANNA = "Savanna"
+    JUNGLE = "Jungle"
+    MANGROVE = "Mangrove"
 
     #Aquatic
-    OCEAN = BiomeData("Ocean", "varies", "very wet", "sea", 2)
-    LAKE = BiomeData("Lake", "varies", "very wet", "lowland", 1)
-    RIVER = BiomeData("River", "varies", "very wet", "lowland", 1)
-    SWAMP = BiomeData("Swamp", "temperate", "very wet", "lowland", 4)
-    MARSH = BiomeData("Marsh", "temperate", "very wet", "lowland", 3)
+    OCEAN = "Ocean"
+    LAKE = "Lake"
+    RIVER = "River"
+    SWAMP = "Swamp"
+    MARSH = "Marsh"
 
     #Mountainous
-    ALPINE = ("Alpine", "cold", "normal", "highland", 7)
-    ROCKY_MOUNTAIN = ("Rocky Mountains", "cold", "dry", "highland", 7)
+    ALPINE = "Alpine"
+    ROCKY_MOUNTAIN = "Rocky Mountains"
 
 class Loot_Table:
     def __init__(self, id_, items):
@@ -170,6 +161,8 @@ class World:
         self.name = name
         self.seed = seed
         self.worldType = worldType
+        self.time = GameTime()
+
         self.width = width
         self.height = height
         self.tiles = WorldGenerator.generate(width, height, WorldTypes.NORMAL, seed)

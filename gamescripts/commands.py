@@ -46,6 +46,7 @@ class MenuCommands:
         current_world = GameStateManager.get()["player_location"]["current_world"]
         current_world.print_altitude_map()
         """
+        print(debug(f"World time: {game_state["player_location"]["current_world"].time}"))
         return (f"Save succesfully loaded\nWelcome back, {game_state["player"].name}", game_state, "game")
 
     @staticmethod
@@ -81,6 +82,7 @@ class MenuCommands:
         # Introduce
         playerEntity = Player(f"{CYAN}{player_name}{RESET}")
         initialWorld = World(save_name, seed)
+        print(debug(f"World time: {initialWorld.time}"))
 
         """ #display tile data
         print(f"World: {initialWorld.name}")
@@ -156,14 +158,35 @@ class MenuCommands:
 #ingame command functions
 class GameCommands():
     @staticmethod
-    def master_info(): #both implicitly and explicitly called
-        output = f"\nINFO PLACEHOLDER\n"
+    def master_info(player=None, world=None, time=None): #both implicitly and explicitly called
         game_state = GameStateManager.get()
-        current_biome = game_state["player_location"]["current_tile"].biome
+        if not player:
+            player = game_state["player"]
+            location = game_state["player_location"]
+        if not world:
+            world = location["current_world"]
+        if not time:
+            time = world.time
+        
+        player_x = location["player_position"][0]
+        player_y = location["player_position"][1]
+        tile = world.get_tile(player_x, player_y)
 
-        #print(f"{GREEN}{current_biome}{RESET}")
-        output += debug(current_biome)
-        return output
+        info = f"\n{ITALIC}MAIN INFO{RESET}\n"
+        info += f"Player name: {BLUE}{player.name}{RESET}\n"
+        info += f"Location: ({player_x}, {player_y})\n"
+        info += f"Time: Year {time.year}, Month {time.month}, Day {time.day}\n"
+        info += f"Biome: {tile.biome.value}\n"
+        info += f"Altitude: {tile.altitude}\n"
+
+        if tile.structures:
+            info += "Structures:\n"
+            for s in tile.structures:
+                info += f"  - {BOLD}{s.name}{RESET}\n"
+        else:
+            info += "No notable structures here.\n"
+
+        return info
 
     @staticmethod
     def game_help():

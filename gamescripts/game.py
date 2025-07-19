@@ -56,8 +56,6 @@ def parse_input(userInput):
 def check_command(command, command_list):
     output = []
 
-    game_state = GameStateManager.get()
-
     if command in command_list:
         output.append(True)
     else:
