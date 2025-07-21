@@ -17,11 +17,11 @@ from .item import ITEMS
 class MenuCommands:
     @staticmethod
     def help_command():
-        output = "\n"
-        output += f"{BRIGHT_PURPLE}Available commands: {RESET}\n"
+        info = "\n"
+        info += f"{BRIGHT_PURPLE}Available commands: {RESET}\n"
         for command, description in COMMANDS["MENU"]["DESCRIPTIONS"].items():
-            output += f"{command}: {description}\n"
-        return output
+            info += f"{command}: {description}\n"
+        return info
 
     @staticmethod
     def load_command(arg=None):
@@ -46,8 +46,10 @@ class MenuCommands:
         current_world = GameStateManager.get()["player_location"]["current_world"]
         current_world.print_altitude_map()
         """
-        print(debug(f"World time: {game_state["player_location"]["current_world"].time}"))
-        return (f"Save succesfully loaded\nWelcome back, {game_state["player"].name}", game_state, "game")
+        current_world = game_state["player_location"]["current_world"]
+        player = game_state["player"]
+        print(debug(f"World time: {current_world.time}"))
+        return (f"Save succesfully loaded\nWelcome back, {player.name}", game_state, "game")
 
     @staticmethod
     def delete_save_command(filename, confirmation=None):
@@ -111,8 +113,7 @@ class MenuCommands:
             "player": playerEntity,
             "player_location": {
                 "current_world": initialWorld,
-                "player_position": (0, 0),
-                "current_tile": initialWorld.get_tile(0, 0)
+                "current_tile": initialWorld.get_tile(initialWorld.get_center_tile())
             }
         }
 
@@ -121,12 +122,14 @@ class MenuCommands:
 
         # Save the new game state
         save_system = GameSaveSystem()
-        save_system.new_game(game_state, save_name)
-        game_state = debug(f"{GameStateManager.get()}")
-        print(game_state)
+        if save_system.new_game(game_state, save_name):
+            game_state = GameStateManager.get()
+            print(debug(game_state))
 
-        # Start the main game loop
-        return True, game_state
+            # Start the main game loop
+            return True, game_state
+        else:
+            return False, game_state
 
     @staticmethod
     def new_game_command(save_name=None, difficulty=None, player_name=None, seed=None): #this is the function that acts as the command
@@ -142,13 +145,17 @@ class MenuCommands:
 
         if not player_name:
             player_name = input("Write your name> ")
-        else:
-            seed = int(seed)
 
         if not seed:
             seed = random.randint(0, 99999999)
+        else:
+            seed = int(seed)
 
-        return ("\nNew game created and started.", MenuCommands.create_new_game(save_name, player_name, seed)[1], "game")
+        success, game_state = MenuCommands.create_new_game(save_name, player_name, seed)
+        if success:
+            return ("\nNew game created and started.", f"{game_state}", "game")
+        else:
+            return ("\n", f"{game_state}", "menu")
     
     @staticmethod
     def exit_command(arg=None):
@@ -167,14 +174,12 @@ class GameCommands():
             world = location["current_world"]
         if not time:
             time = world.time
-        
-        player_x = location["player_position"][0]
-        player_y = location["player_position"][1]
-        tile = world.get_tile(player_x, player_y)
+
+        tile = world.get_tile(location["current_tile"].x, location["current_tile"].y)
 
         info = f"\n{ITALIC}MAIN INFO{RESET}\n"
         info += f"Player name: {BLUE}{player.name}{RESET}\n"
-        info += f"Location: ({player_x}, {player_y})\n"
+        info += f"Location: ({tile.x}, {tile.y})\n"
         info += f"Time: Year {time.year}, Month {time.month}, Day {time.day}\n"
         info += f"Biome: {tile.biome.value}\n"
         info += f"Altitude: {tile.altitude}\n"
@@ -182,7 +187,7 @@ class GameCommands():
         if tile.structures:
             info += "Structures:\n"
             for s in tile.structures:
-                info += f"  - {BOLD}{s.name}{RESET}\n"
+                info += f"  - {BOLD}{s}{RESET}\n"
         else:
             info += "No notable structures here.\n"
 
@@ -194,25 +199,53 @@ class GameCommands():
         output = "\n"
         output += f"{BRIGHT_PURPLE}Available actions: {RESET}\n"
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
-            output += f"{command}: {description}\n"
+            output += f"{GREEN}{command}{RESET}: {description}\n"
         
         #temporary game_state data dump for debugging purposes
         output += debug(f"Game State:\n")
         output += debug(f"{GameStateManager.get()}")
         return output
-        
+    
     @staticmethod
-    def save_command(game_state=None, name=None):
-        save_system = GameSaveSystem()
+    def travel(direction=None, game_state=None):
+        game_state = GameStateManager.get()
+        if not direction:
+            direction = input("Please type a direction: north, south, east, or west\n(You can also just type the first letter: n, s, e, w)> ") 
+        
+        direction = direction.lower()
+        deltas = {
+            "north": (0, -1),
+            "n": (0, -1),
+            "south": (0, 1),
+            "s": (0, 1),
+            "east": (1, 0),
+            "e": (1, 0),
+            "west": (-1, 0),
+            "w": (-1, 0)
+        }
 
-        if not game_state:
-            game_state = GameStateManager.get()
+        if direction not in deltas:
+            return ("Invalid direction. Use: north, south, east, or west.", game_state, "game")
 
-        if not name:
-            name = GameSaveSystem.CURRENT_SAVE
+        dx, dy = deltas[direction]
+        world = game_state["player_location"]["current_world"]
+        origin_tile = game_state["player_location"]["current_tile"]
+        new_x = origin_tile.x + dx
+        new_y = origin_tile.y + dy
 
-        save_system.save_progress(game_state, name)
-        return f"Game succesfully saved as {name}"
+        new_tile = world.get_tile(new_x, new_y)
+        if not new_tile:
+            return ("You can't travel that way. The path is blocked or the edge of the world has been reached.", game_state, "menu")
+
+        # Update game state
+        game_state["player_location"]["current_tile"] = new_tile
+
+        return (
+            f"You travel {direction} from {origin_tile.biome.value} tile to a {new_tile.biome.value} tile. "
+            f"Your new coordinates are ({new_tile.x}, {new_tile.y})",
+            game_state,
+            "game"
+        )
     
     @staticmethod
     def world_map():
@@ -231,12 +264,25 @@ class GameCommands():
             print(f"{k.name}: {k.description}")
             print(f"Attributes: {k.attributes}")
         return ""
+    
+    @staticmethod
+    def save_command(game_state=None, name=None):
+        save_system = GameSaveSystem()
 
+        if not game_state:
+            game_state = GameStateManager.get()
+
+        if not name:
+            name = GameSaveSystem.CURRENT_SAVE
+
+        save_system.save_progress(game_state, name)
+        return f"Game succesfully saved as {name}"
+    
     @staticmethod
     def quit_game(game_exit=None):
         if not game_exit == "exit":
             GameStateManager.reset()
-            return ("Exiting the saved game\n", "menu", "menu") #second value is a placeholder for what would normally be a huge game_state object
+            return ("Exiting the saved game\n", "menu", "menu") #second value is a placeholder for what would normally be the game_state object
         else:
             GameStateManager.reset()
             MenuCommands.exit_command()
@@ -264,7 +310,8 @@ COMMANDS = {
         "COMMANDS": {
             "info": GameCommands.master_info,
             "help": GameCommands.game_help,
-            "save (save name; optional)": GameCommands.save_command,
+            "save": GameCommands.save_command,
+            "travel": GameCommands.travel,
             "map": GameCommands.world_map,
             "region": GameCommands.region_map,
             "catalogue": GameCommands.catalogue,
@@ -273,7 +320,8 @@ COMMANDS = {
         "DESCRIPTIONS" : {
             "info": "Shows general info about your current surroundings and situation.",
             "help": "Displays a list of available actions.",
-            "save (name)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
+            "save (save name; optional)": "Saves the current game state as specified save name (leave blank to overwrite current save).",
+            "travel (direction)": "Makes you travel from your current tile in a specified direction towards a neighboring tile.",
             "map": "Displays an altitude map of the known tiles.",
             "region": "Displays a map of the current tile.",
             "quit": "Exits the saved game."

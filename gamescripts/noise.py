@@ -8,7 +8,7 @@ def lerp(a, b, t):
 def fade(t):
     return t * t * (3 - 2 * t)
 
-def gradient_noise(x, y, seed=0, scale=0.005): #scale=0.1
+def gradient_noise(x, y, seed=0, scale=0.01): #scale=0.1
     seed = int(seed)
     x *= scale
     y *= scale

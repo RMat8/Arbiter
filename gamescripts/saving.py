@@ -24,32 +24,35 @@ class GameSaveSystem():
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-        save_game_state_path = os.path.join(save_path, "game_state.pkl")
-        save_config_path = os.path.join(save_path, "config.ini")
+            save_game_state_path = os.path.join(save_path, "game_state.pkl")
+            save_config_path = os.path.join(save_path, "config.ini")
 
-        try:
-            with open(save_game_state_path, "wb") as save_file:
-                pickle.dump(game_state, save_file)
+            try:
+                with open(save_game_state_path, "wb") as save_file:
+                    pickle.dump(game_state, save_file)
 
-            with open(save_config_path, "w") as save_config:
-                config = configparser.ConfigParser()
+                with open(save_config_path, "w") as save_config:
+                    config = configparser.ConfigParser()
 
-                config["gameSettings"] = {
-                    "difficulty": "normal",
-                    "startingWorldType": "normal"
-                }
-                
-                config.write(save_config)
+                    config["gameSettings"] = {
+                        "difficulty": "normal",
+                        "startingWorldType": "normal"
+                    }
+                    
+                    config.write(save_config)
 
-            GameSaveSystem.CURRENT_SAVE = slot_name
-            GameStateManager.set(game_state)
-            print(f"Game created successfully at {save_path}")
-            return True
-        except Exception as e:
-            GameSaveSystem.CURRENT_SAVE = None
-            print(f"Error creating game: {e}")
+                GameSaveSystem.CURRENT_SAVE = slot_name
+                GameStateManager.set(game_state)
+                print(f"Game created successfully at {save_path}")
+                return True
+            except Exception as e:
+                GameSaveSystem.CURRENT_SAVE = None
+                print(f"Error creating game: {e}")
+                return False
+        else:
+            print(f"Error creating game: Save name already in use")
             return False
-        
+
     @staticmethod
     def save_progress(game_state, slot_name):
         save_path = os.path.join(GameSaveSystem.SAVE_DIRECTORY, slot_name)

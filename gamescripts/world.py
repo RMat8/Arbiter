@@ -22,7 +22,7 @@ class HostilityLevel(Enum):
     NIGHTMARE4 = 8
 
 def get_altitude(x, y, seed=0):
-    val = layered_noise(x, y, seed, scale=0.03, octaves=8)
+    val = layered_noise(x, y, seed, scale=0.02, octaves=8) #scale=0.03
     return int(val * 100) + 19
 
 class WorldTypes(Enum):
@@ -65,7 +65,7 @@ class Biome(Enum):
     ALPINE = "Alpine"
     ROCKY_MOUNTAIN = "Rocky Mountains"
 
-class Loot_Table:
+class LootTable:
     def __init__(self, id_, items):
         self.id = id_
         self.items = items
@@ -77,13 +77,19 @@ class Loot_Table:
             desc += f"{k}: {v}\n"
         return desc
 
+class StructureType(Enum):
+    SETTLEMENT = "settlement"
+    RUIN = "ruin"
+    FORMATION = "formation"
+
 class Structure:
-    def __init__(self, name, loottable):
+    def __init__(self, name, loottable: LootTable, structure_type: StructureType):
         self.name = name
         self.loottable = loottable
+        self.structure_type = structure_type
 
     def __repr__(self):
-        return f"<Structure: {self.name}>"
+        return f"<{self.structure_type.value.title()}: {self.name}>"
     
     @staticmethod
     def load_table_from_json(file_path="gamedata/resources/loot tables/loot_tables.json"):
@@ -95,7 +101,7 @@ class Structure:
 
         loaded_tables = {}
         for data in loot_tables:
-            table = Loot_Table(
+            table = LootTable(
                 id_=data["id"],
                 #type_=data["type"],
                 items=data["items"]
@@ -148,13 +154,17 @@ class Tile:
         tile_seed = f"{self.x},{self.y},{self.seed}"
         rng = random.Random(tile_seed)
 
-        num_structures = rng.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
-        return [
-            Structure(
-                name=rng.choice(PLACEHOLDER_STRUCTURES),
-                loottable=rng.choice(list(LOOT_TABLES.values()))
+        structures = []
+        num_structures = rng.choices([4, 2, 3, 5], weights=[15, 60, 20, 5])[0]
+        for _ in range(num_structures):
+            structures.append(
+                Structure(
+                    name=rng.choice(PLACEHOLDER_STRUCTURES),
+                    loottable=rng.choice(list(LOOT_TABLES.values())),
+                    structure_type=rng.choice(list(StructureType))
+                )
             )
-        ]
+        return structures
 
 class World:
     def __init__(self, name, seed, width=50, height=50, worldType=WorldTypes.NORMAL):
@@ -167,8 +177,19 @@ class World:
         self.height = height
         self.tiles = WorldGenerator.generate(width, height, WorldTypes.NORMAL, seed)
     
-    def get_tile(self, x, y):
+    def get_tile(self, x, y=None):
+        if type(x) == tuple:
+            return self.tiles.get((x[0], x[1]))
+
         return self.tiles.get((x, y))
+    
+    def get_center_tile(self):
+        all_coords = self.tiles.keys()
+        xs = [x for x, _ in all_coords]
+        ys = [y for _, y in all_coords]
+        center_x = int((min(xs) + max(xs)) // 2)
+        center_y = int((min(ys) + max(ys)) // 2)
+        return (center_x, center_y)
 
     def set_player_position(game_state=None, new_position=(0, 0)):
         if not game_state:
