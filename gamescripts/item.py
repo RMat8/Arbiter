@@ -2,6 +2,23 @@
 import os
 import json
 
+#item types include:
+#consumable
+#weapon
+#material
+#tool
+#armour
+#clothing
+#trinket
+#relic
+#artefact
+#currency
+#container
+#ingredient
+#furniture
+#fixture
+#misc
+
 class Item:
     def __init__(self, id_, name, type_, description, value=0, **kwargs):
         self.id = id_

@@ -7,28 +7,14 @@ from .colors import *
 from .commands import MenuCommands, GameCommands, COMMANDS
 from .game_state_manager import GameStateManager
 
-art = """
- █████  ██████╗ ██████╗    ██╗  ████████╗███████╗██████╗ 
-██╔══██╗██╔══██╗██╔══██╗   ╚═╝  ╚══██╦══╝██╔════╝██╔══██╗
-███████║██████╔╝██████╔╝   ██╗     ██║   █████╗  ██████╔╝
-██╔══██║██╔══██╗██╔══██╗   ██║     ██║   ██╔══╝  ██╔══██╗
-██║  ██║██║  ██║███████║   ██║     ██║   ███████╗██║  ██║
-╚═╝  ╚═╝╚═╝  ╚═╝╚══════╝   ╚═╝     ╚═╝   ╚══════╝╚═╝  ╚═╝
-"""
-
 def game_init():
     os.system("cls")
     # Start the game by creating a new game or loading an existing one
     print("\n")
-    #time.sleep(2)
-    print(f"{MAGENTA}{art}{RESET}")
-    #time.sleep(2)
+    print(f"{MAGENTA}{ART}{RESET}")
     print("Type 'new' to start a new game or 'load <file>' to load an existing game.")
-    #time.sleep(0.3)
     print("Type help for more information")
-    #time.sleep(0.3)
     print("Type exit to quit.")
-    #time.sleep(0.1)
     main(difficulty="normal")
 
 def parse_input(userInput):
@@ -80,7 +66,6 @@ def main(difficulty):
         uInput = input("\nWhat do you want to do? ")
         command_blocks = parse_input(uInput)
 
-        print(debug(f"Command blocks: {len(command_blocks)}"))
         for i in command_blocks: #input loop
             command = i[0]
             args = i[1]
@@ -106,9 +91,3 @@ def main(difficulty):
 
             if state in possible_states:
                 commands = COMMANDS[state.upper()]["COMMANDS"]
-
-        if not command == "info":
-            try:
-                print(commands["info"]())
-            except:
-                pass

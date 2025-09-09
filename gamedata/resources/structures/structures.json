@@ -1,0 +1,8 @@
+{
+    "village": {
+        "type": "settlement",
+        "containers": {
+            "chest": "abandoned_hut"
+        }
+    }
+}

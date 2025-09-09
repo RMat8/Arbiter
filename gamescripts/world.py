@@ -23,7 +23,7 @@ class HostilityLevel(Enum):
 
 def get_altitude(x, y, seed=0):
     val = layered_noise(x, y, seed, scale=0.02, octaves=8) #scale=0.03
-    return int(val * 100) + 19
+    return int(val * 100) + 19 #offset to be 19 degrees higher
 
 class WorldTypes(Enum):
     NORMAL = 1
@@ -77,22 +77,16 @@ class LootTable:
             desc += f"{k}: {v}\n"
         return desc
 
-class StructureType(Enum):
-    SETTLEMENT = "settlement"
-    RUIN = "ruin"
-    FORMATION = "formation"
-
 class Structure:
-    def __init__(self, name, loottable: LootTable, structure_type: StructureType):
+    def __init__(self, name, loottable: dict):
         self.name = name
         self.loottable = loottable
-        self.structure_type = structure_type
 
     def __repr__(self):
-        return f"<{self.structure_type.value.title()}: {self.name}>"
+        return f"<{self.name}>"
     
     @staticmethod
-    def load_table_from_json(file_path="gamedata/resources/loot tables/loot_tables.json"):
+    def load_tables_from_json(file_path="gamedata/resources/loot tables/loot_tables.json"):
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"No item file at {file_path}")
         
@@ -101,23 +95,45 @@ class Structure:
 
         loaded_tables = {}
         for data in loot_tables:
-            table = LootTable(
-                id_=data["id"],
-                #type_=data["type"],
-                items=data["items"]
-            )
+            id_=data["id"]
+            items = data["items"]
+            table = LootTable(id_=id_, items=items)
             loaded_tables[data["id"]] = table
 
         return loaded_tables
     
-LOOT_TABLES = Structure.load_table_from_json()
+LOOT_TABLES = Structure.load_tables_from_json()
 print(f"Loot tables: {LOOT_TABLES}")
 
-PLACEHOLDER_STRUCTURES = [
-    "Ancient Ruins", "Abandoned Hut", "Watchtower",
-    "Cave Entrance", "Forest Shrine", "Trading Post",
-    "Mysterious Statue", "Burial Site", "Old Campfire"
-]
+def load_structures_from_json(file_path="gamedata/resources/structures/structures.json"):
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"No structure file at {file_path}")
+    
+    with open(file_path, "r", encoding="utf-8") as f:
+        structures_data = json.load(f)
+
+
+    loaded_structures = {}
+    print(f"structures_data: {structures_data}")
+    for struct_id, struct_info in structures_data.items():
+        containers = struct_info.get("containers", {})
+
+        container_objects = {
+            name: LOOT_TABLES[loottable_id]
+            for name, loottable_id in containers.items()
+            if loottable_id in LOOT_TABLES
+        }
+
+        debug(f"Loaded structure '{struct_id}' with containers: {container_objects}")
+        loaded_structures[struct_id] = Structure(
+            name=struct_id,
+            loottable=container_objects
+        )
+
+    return loaded_structures
+
+
+STRUCTURES = load_structures_from_json()
 
 class Tile:
     def __init__(self, x, y, biome, altitude, seed=0):
@@ -129,39 +145,39 @@ class Tile:
         self.structures = self._generate_structures()
         self.entities = []
 
-    def describe(self):
+    def describe(self, expanded=False):
         desc = f"Tile ({self.x}, {self.y}) - {self.biome.value}, Altitude: {self.altitude}"
-        if self.structures:
-            desc += f"\nStructures:" 
-            for s in self.structures:
-                desc += f"\n{s.name}"
-                desc += debug(f"\n{s.loottable}")
+        desc += f"\nStructures:" 
+        for s in self.structures:
+            desc += f"\n- {s.name}"
+            if expanded:
+                for container, table in s.loottable.items():
+                    desc += f"\n  {container}: {table.id}"
+                    for item, weight in table.items.items():
+                        desc += f"\n    {item}: {weight}"
+                desc += "\n"
+            else:
+                for container, table in s.loottable.items():
+                    desc += f"\n {container}: {table.id} ({len(table.items)} items)\n"
+
         return desc
 
-    """
-    @staticmethod
-    def _generate_structures():
-        num_structures = random.choices([0, 1, 2, 3], weights=[15, 60, 20, 5])[0]
-        return [
-            Structure(
-                name=random.choice(PLACEHOLDER_STRUCTURES),
-                loottable=random.choice(list(LOOT_TABLES.values()))
-            )
-            for _ in range(num_structures)
-        ]
-    """
     def _generate_structures(self):
         tile_seed = f"{self.x},{self.y},{self.seed}"
         rng = random.Random(tile_seed)
 
         structures = []
-        num_structures = rng.choices([4, 2, 3, 5], weights=[15, 60, 20, 5])[0]
+        num_structures = rng.choices([1, 2, 3, 4], weights=[15, 60, 20, 5])[0]
         for _ in range(num_structures):
+            structure_name = rng.choice(list(STRUCTURES.keys()))
+            structure_template = STRUCTURES[structure_name]
+            
+            loottable_copy = dict(structure_template.loottable)
+
             structures.append(
                 Structure(
-                    name=rng.choice(PLACEHOLDER_STRUCTURES),
-                    loottable=rng.choice(list(LOOT_TABLES.values())),
-                    structure_type=rng.choice(list(StructureType))
+                    name=structure_template.name,
+                    loottable=loottable_copy,
                 )
             )
         return structures
@@ -175,7 +191,8 @@ class World:
 
         self.width = width
         self.height = height
-        self.tiles = WorldGenerator.generate(width, height, WorldTypes.NORMAL, seed)
+        self.tiles = WorldGenerator.generate(self.width, self.height, self.worldType, self.seed)
+        
     
     def get_tile(self, x, y=None):
         if type(x) == tuple:
@@ -225,15 +242,16 @@ class WorldGenerator:
     @classmethod
     def generate(cls, width, height, worldType, seed):
         if worldType == WorldTypes.NORMAL:
-            return cls._generate_normal_world(width, height, seed)
+            return cls._generate_normal_world(width, height, worldType, seed)
     
     @classmethod
-    def _generate_normal_world(cls, width, height, seed):
+    def _generate_normal_world(cls, width, height, worldType, seed):
         worldTiles = {}
-        print(debug(f"seed={seed}, type={type(seed)}"))
+        rng = random.Random(seed)
+        print(debug(f"seed={seed}, type={worldType}"))
         for x in range(width):
             for y in range(height):
-                biome = random.choice(list(Biome))
+                biome = rng.choice(list(Biome))
                 altitude = cls._get_altitude(x, y, seed)
                 tile = Tile(x, y, biome, altitude, seed)
                 worldTiles[(x, y)] = tile

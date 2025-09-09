@@ -1,5 +1,13 @@
 [
   {
+    "id": "chest",
+    "name": "Chest",
+    "type": "container",
+    "description": "A basic form of item storage",
+    "contents": [],
+    "max_storage": 30
+  },
+  {
     "id": "healing_potion",
     "name": "Healing Potion",
     "type": "consumable",

@@ -25,6 +25,7 @@ class MenuCommands:
 
     @staticmethod
     def load_command(arg=None):
+        os.system("cls")
         save_system = GameSaveSystem()
         if not arg:
             print("Please specify save to load from directory")
@@ -81,8 +82,10 @@ class MenuCommands:
 
     @staticmethod
     def create_new_game(save_name, player_name, seed): #this is the black box of the new_game_command
+        os.system("cls")
         # Introduce
-        playerEntity = Player(f"{CYAN}{player_name}{RESET}")
+        player_name = f"{CYAN}{player_name}{RESET}"
+        playerEntity = Player(player_name)
         initialWorld = World(save_name, seed)
         print(debug(f"World time: {initialWorld.time}"))
 
@@ -99,7 +102,7 @@ class MenuCommands:
 
         print(f"Hello, {player_name}, Your journey begins here.")
         time.sleep(0.1)
-        print("Type 'help' to learn more...\n")
+        print(f"Type '{GREEN}help{RESET}' to learn more...\n")
         
         """        # Config
         config = configparser.ConfigParser()
@@ -132,7 +135,7 @@ class MenuCommands:
             return False, game_state
 
     @staticmethod
-    def new_game_command(save_name=None, difficulty=None, player_name=None, seed=None): #this is the function that acts as the command
+    def new_game_command(save_name=None, seed=None, player_name=None, difficulty=None): #this is the function that acts as the command
         if not save_name:
             save_name = input("Enter the name of the save> ")
         
@@ -181,6 +184,7 @@ class GameCommands():
         info += f"Player name: {BLUE}{player.name}{RESET}\n"
         info += f"Location: ({tile.x}, {tile.y})\n"
         info += f"Time: Year {time.year}, Month {time.month}, Day {time.day}\n"
+        info += f"\n{ITALIC}TILE INFO{RESET}\n"
         info += f"Biome: {tile.biome.value}\n"
         info += f"Altitude: {tile.altitude}\n"
 
@@ -200,11 +204,6 @@ class GameCommands():
         output += f"{BRIGHT_PURPLE}Available actions: {RESET}\n"
         for command, description in COMMANDS["GAME"]["DESCRIPTIONS"].items():
             output += f"{GREEN}{command}{RESET}: {description}\n"
-        
-        #temporary game_state data dump for debugging purposes
-        output += debug(f"Game State:\n")
-        output += debug(f"{GameStateManager.get()}")
-        return output
     
     @staticmethod
     def travel(direction=None, game_state=None):
@@ -254,9 +253,12 @@ class GameCommands():
         return ""
 
     @staticmethod
-    def region_map():
+    def region_map(expanded=False):
         current_tile = GameStateManager.get()["player_location"]["current_tile"]
-        return current_tile.describe()
+        if str(expanded).upper() == "Y":
+            return current_tile.describe(expanded=True)
+        else:
+            return current_tile.describe()
     
     @staticmethod
     def catalogue():
@@ -282,7 +284,16 @@ class GameCommands():
     def quit_game(game_exit=None):
         if not game_exit == "exit":
             GameStateManager.reset()
-            return ("Exiting the saved game\n", "menu", "menu") #second value is a placeholder for what would normally be the game_state object
+            print("Exiting the saved game\n")
+            os.system("cls")
+
+            print("\n")
+            print(f"{MAGENTA}{ART}{RESET}")
+            print("Type 'new' to start a new game or 'load <file>' to load an existing game.")
+            print("Type help for more information")
+            print("Type exit to quit.")
+
+            return ("", "menu", "menu") #second value is a placeholder for what would normally be the game_state object
         else:
             GameStateManager.reset()
             MenuCommands.exit_command()
